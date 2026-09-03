@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AgriMap — Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  .login-page {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'Inter Tight', sans-serif;
+    background: #0a1a0e;
+  }
+  .login-bg-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 70%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    z-index: 0;
+  }
+  .login-bg-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 70%;
+    height: 100%;
+    z-index: 1;
+    background: linear-gradient(100deg, rgba(14, 56, 38, 0.15) 0%, rgba(6,20,14,0.25) 55%, rgba(6,20,14,0.6) 78%, rgba(6,20,14,0.72) 100%);
+  }
+  .login-brand {
+    position: fixed;
+    left: 3rem;
+    bottom: 3rem;
+    z-index: 2;
+    max-width: 480px;
+    color: #fff;
+  }
+  .login-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 30%;
+    min-width: 360px;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow-y: auto;
+    padding: 2rem 2.5rem;
+    box-sizing: border-box;
+    background: rgba(8, 28, 20, 0.28);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-left: 1px solid rgba(255,255,255,0.18);
+  }
+  .login-input, .login-select {
+    width: 100%;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 6px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-family: inherit;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .login-input::placeholder { color: rgba(255,255,255,0.65); }
+
+  /* password field + reveal toggle */
+  .pw-wrap { position: relative; }
+  .pw-wrap .login-input { padding-right: 2.35rem; }
+  .pw-toggle {
+    position: absolute;
+    top: 50%;
+    right: 0.3rem;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s;
+  }
+  .pw-toggle:hover { color: #fff; background: rgba(255,255,255,0.12); }
+  .pw-toggle:focus-visible { outline: 2px solid rgba(255,255,255,0.6); outline-offset: 1px; }
+  .pw-toggle svg { width: 18px; height: 18px; display: block; }
+
+  /* remember me */
+  .remember-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 1.25rem;
+  }
+  .remember-row input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: #2f8f5e;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .remember-row label {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.85);
+    cursor: pointer;
+    user-select: none;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+  .login-input:focus, .login-select:focus {
+    outline: none;
+    border-color: rgba(255,255,255,0.8);
+    background: rgba(255,255,255,0.18);
+  }
+  .login-select option { color: #111; }
+
+  /* ---- component styles (converted from the TSX `styles` object) ---- */
+  .brand-logo {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  }
+  .brand-text {
+    font-size: 1.05rem;
+    line-height: 1.5;
+    margin: 0;
+    color: rgba(255,255,255,0.92);
+    text-shadow: 0 1px 8px rgba(0,0,0,0.45);
+  }
+  .logo-section {
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+  .logo-circle {
+    width: 72px;
+    height: 72px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    margin: 0 auto 0.75rem;
+  }
+  .app-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 0.25rem;
+    text-shadow: 0 1px 8px rgba(0,0,0,0.4);
+  }
+  .app-subtitle {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.8);
+    margin: 0;
+  }
+  .form {
+    margin-top: 1.5rem;
+  }
+  /* two equal columns, side by side — never wraps */
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    width: 100%;
+    align-items: start;
+  }
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+  .form-group-half {
+    min-width: 0;          /* lets the inputs shrink inside the grid track */
+    margin-bottom: 1.25rem;
+  }
+  .form-group-half .login-input { min-width: 0; }
+  .label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 0.4rem;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+  .login-btn {
+    width: 100%;
+    padding: 0.875rem;
+    background: #2f8f5e;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .login-btn:disabled { opacity: 0.7; cursor: default; }
+  .error-message {
+    background: rgba(198, 40, 40, 0.35);
+    color: #ffdede;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(239, 83, 80, 0.6);
+  }
+  .demo-note {
+    text-align: center;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.65);
+    margin: 1rem 0 0;
+  }
+
+  @media (max-width: 640px) {
+    .login-brand { display: none; }
+    .login-panel {
+      width: 100%;
+      min-width: 0;
+      border-left: none;
+      background: rgba(6, 20, 14, 0.55);
+    }
+    .login-bg-overlay {
+      background: linear-gradient(180deg, rgba(6,20,14,0.35) 0%, rgba(6,20,14,0.65) 100%);
+    }
+  }
+</style>
+</head>
+<body>
+<div class="login-page">
+  <img class="login-bg-image" src="close-up-woman-holding-earth-globe.jpg" alt="" />
+  <div class="login-bg-overlay"></div>
+
+  <div class="login-panel">
+    <div class="logo-section">
+      <div class="logo-circle">🌾</div>
+      <h1 class="app-title">AgriMap</h1>
+      <p class="app-subtitle">Agriculture Decision Intelligence</p>
+    </div>
+
+    <form class="form" id="loginForm" novalidate>
+      <div class="form-group">
+        <label class="label" for="country">Region</label>
+        <select id="country" class="login-select"></select>
+      </div>
+      <div class="form-group" id="stateGroup" hidden>
+        <label class="label" for="stateSel">State</label>
+        <select id="stateSel" class="login-select"></select>
+      </div>
+
+      <div class="form-group">
+        <label class="label" for="role">Role</label>
+        <select id="role" class="login-select"></select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group-half">
+          <label class="label" for="username">Username</label>
+          <input type="text" id="username" class="login-input" placeholder="Username" autocomplete="username" autofocus />
+        </div>
+        <div class="form-group-half">
+          <label class="label" for="password">Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="password" class="login-input" placeholder="Password" autocomplete="current-password" />
+            <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password" aria-pressed="false" title="Show password"></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="remember-row">
+        <input type="checkbox" id="remember" />
+        <label for="remember">Remember me</label>
+      </div>
+
+      <div class="error-message" id="error" hidden></div>
+
+      <button type="submit" class="login-btn" id="loginBtn">Login</button>
+    </form>
+
+    <p class="demo-note">Sign in with your AgriMap credentials</p>
+  </div>
+</div>
+
+<script>
+  // Roles available per country — mirrors each dashboard's own ROLES map.
+  var COUNTRY_ROLES = {
+    'Andhra Pradesh': {
+      ps: 'Principal Secretary', dir_agri: 'Director of Agriculture', dir_horti: 'Director Horticulture',
+      dir_soil: 'Director Soil Conservation', dir_pp: 'Joint Dir Plant Protection', bameti: 'SAMETI Director',
+      brbn: 'APSSDCL / AP Seeds', divcom: 'District Collector', dao: 'District Agri Officer',
+      block: 'Mandal Agri Officer', kvk: 'KVK Scientist', jeevika: 'SERP / Velugu Coordinator', farmer: 'Farmer / FPO'
+    },
+    'Rajasthan': {
+      ps: 'Principal Secretary', dir_agri: 'Director of Agriculture', dir_horti: 'Director Horticulture',
+      dir_soil: 'Director Soil Conservation', dir_pp: 'Joint Dir Plant Protection', bameti: 'SAMETI Director',
+      brbn: 'RSSC / Rajasthan Seeds', divcom: 'District Collector', dao: 'District Agri Officer',
+      block: 'Tehsil Agri Officer', kvk: 'KVK Scientist', jeevika: 'SERP / Velugu Coordinator', farmer: 'Farmer / FPO'
+    },
+    'Bihar': {
+      ps: 'Principal Secretary', dir_agri: 'Director Agriculture', dir_horti: 'Director Horticulture',
+      dir_soil: 'Director Soil Conservation', dir_pp: 'Joint Dir Plant Protection', bameti: 'BAMETI Director',
+      brbn: 'BRBN / Seed Corp', divcom: 'Divisional Commissioner', dao: 'District Agri Officer',
+      block: 'Block Agri Officer', kvk: 'KVK Scientist', jeevika: 'JEEViKA Coordinator',
+      bank: 'Bank / Coop / NBFC', farmer: 'Farmer / FPO'
+    },
+    'Ethiopia': {
+      ps: 'PS / Commissioner MoA', dir_crop: 'Dir. Crop Production', dir_pp: 'Dir. Plant Protection',
+      naro: 'EIAR Researcher', coffee: 'MoA Coffee Unit', dao: 'Region Agri Officer', ext: 'Extension Worker',
+      youth_farmer: 'Youth Farmer', agro_dealer: 'Agro-Dealer', foundation_staff: 'AgriMap Foundation',
+      ngo: 'NGO / Dev Partner', agribiz: 'Agribusiness / Bank'
+    },
+    'Uganda': {
+      ps: 'PS / Commissioner MAAIF', dir_crop: 'Dir. Crop Production', dir_pp: 'Dir. Plant Protection',
+      naro: 'NARO Researcher', coffee: 'MAAIF Coffee Unit', dao: 'District Agri Officer', ext: 'Extension Worker',
+      youth_farmer: 'Youth Farmer', agro_dealer: 'Agro-Dealer', foundation_staff: 'AgriMap Foundation',
+      ngo: 'NGO / Dev Partner', agribiz: 'Agribusiness / Bank'
+    },
+    'Rwanda': {
+      ps: 'PS / Permanent Secretary MINAGRI', dir_crop: 'Director Crop Production', dir_pp: 'Director Plant Health',
+      naro: 'RAB Researcher', coffee: 'NAEB Export Unit', dao: 'District Agronomist', ext: 'Twigire Muhinzi Extension',
+      youth_farmer: 'Youth Farmer', agro_dealer: 'Agro-Dealer', foundation_staff: 'AgriMap Foundation',
+      ngo: 'NGO / Dev Partner', agribiz: 'Agribusiness / Bank'
+    },
+    'Tanzania': {
+      ps: 'Principal Secretary', dir_agri: 'Director of Agriculture', dir_horti: 'Director Horticulture',
+      dir_soil: 'Director Soil Conservation', dir_pp: 'Joint Dir Plant Protection', bameti: 'DRD Extension Director',
+      brbn: 'ASA / Agricultural Seed Agency', divcom: 'Regional Commissioner', dao: 'Regional Agri Officer',
+      block: 'District Agri Officer', kvk: 'TARI Scientist', jeevika: 'TASAF / Livelihoods Coordinator', farmer: 'Farmer / AMCOS'
+    },
+    'Kenya': {
+      ps: 'Principal Secretary', dir_agri: 'Director of Agriculture', dir_horti: 'Director Horticulture',
+      dir_soil: 'Director Soil Conservation', dir_pp: 'Joint Dir Plant Protection', bameti: 'DRD Extension Director',
+      brbn: 'ASA / Kenya Seed Company', divcom: 'County Commissioner', dao: 'County Agri Officer',
+      block: 'District Agri Officer', kvk: 'KALRO Scientist', jeevika: 'TASAF / Livelihoods Coordinator', farmer: 'Farmer / SACCO'
+    },
+    'Nigeria': {
+      foundation: 'Foundation / Donor', min_ag: 'Hon. Minister, FMAFS', min_lv: 'Hon. Minister, FMLD',
+      ps: 'Perm. Secretary / Director', nsia: 'NSIA / SPV Board', adp: 'State ADP Director',
+      bank: 'Bank / NIRSAL', fintech: 'Fintech Partner', insurer: 'Insurer (NAIC / private)',
+      eq_owner: 'Equipment Owner', proc: 'Processor / Toller', dealer: 'Agro-Dealer',
+      agent: 'Market Agent', farmer: 'Farmer / Herder'
+    },
+    'Senegal': {
+      sg: 'MASAE — Ministre / SG', dapsa: 'Analyste DAPSA', drdr: 'DRDR (Dir. régional)',
+      elevage: 'Direction de l\'Élevage', ancar: 'Conseiller ANCAR', saed: 'Ingénieur SAED/SODAGRI',
+      farmer: 'Producteur / Productrice', herder: 'Éleveur / Pasteur', eq_owner: 'Propriétaire d\'équipement',
+      proc: 'Transformateur / Façonnier', dealer: 'Agro-dealer / Distributeur', bank: 'Banque / SFD',
+      agent: 'Agent de marché (prix)'
+    }
+  };
+
+  function rolesFor(country) {
+    return COUNTRY_ROLES[country] || COUNTRY_ROLES[Object.keys(COUNTRY_ROLES)[0]];
+  }
+  function roleLabel(country, role) {
+    return rolesFor(country)[role] || role;
+  }
+
+  // Each "country" option maps to the dashboard HTML page it opens after login.
+  var COUNTRY_PAGES = {
+    'Andhra Pradesh': 'ap.html',
+    'Rajasthan': 'RJ.html',
+    'Bihar': 'BH.html',
+    'Ethiopia': 'ET.html',
+    'Tanzania': 'TA.html',
+    'Uganda': 'UG.html',
+    'Rwanda': 'RW.html',
+    'Kenya': 'AgriMap Kenya — Agricultural Intelligence Platform.html',
+    'Nigeria': 'AgriMap_LivestockMap_Nigeria.html',
+    'Senegal': 'AgriMap_LivestockMap_Senegal_1.html',
+  };
+
+  // Top-level Region dropdown. Picking "India" reveals a second dropdown of states.
+  var TOP_REGIONS = ['India', 'Ethiopia', 'Kenya', 'Nigeria', 'Rwanda', 'Senegal', 'Tanzania', 'Uganda'];
+  var INDIA_STATES = ['Andhra Pradesh', 'Rajasthan', 'Bihar'];
+
+  // Demo credentials. NOTE: this is client-side only — anyone can read it in
+  // "View Source". It is a gate, not real security. Edit / add users here.
+  var CREDENTIALS = {
+    'demo@skyquestt.com': 'Admin@1234'
+  };
+
+  // Where the signed-in session is kept. Dashboards read the same key and bounce
+  // back here when it is missing, so the pages can't be opened by URL alone.
+  var AUTH_KEY = 'agrimap_auth';
+  // "Remember me" store. Survives browser restarts, unlike the session above.
+  var REMEMBER_KEY = 'agrimap_remember';
+
+  // Landing on the login page always ends any previous session.
+  try { sessionStorage.removeItem(AUTH_KEY); } catch (e) {}
+
+  var userInput = document.getElementById('username');
+  var passInput = document.getElementById('password');
+  var pwToggle = document.getElementById('pwToggle');
+  var rememberBox = document.getElementById('remember');
+  var roleSelect = document.getElementById('role');
+  var countrySelect = document.getElementById('country');
+  var stateGroup = document.getElementById('stateGroup');
+  var stateSelect = document.getElementById('stateSel');
+  var errorBox = document.getElementById('error');
+  var loginBtn = document.getElementById('loginBtn');
+  var form = document.getElementById('loginForm');
+
+  var state = {
+    username: '',
+    password: '',
+    role: 'ps',
+    country: 'India',          // top-level pick
+    region: INDIA_STATES[0],   // effective region (a state when country === 'India')
+    loading: false
+  };
+
+  function fillOptions(select, entries) {
+    select.innerHTML = '';
+    entries.forEach(function (entry) {
+      var opt = document.createElement('option');
+      opt.value = entry.value;
+      opt.textContent = entry.label;
+      select.appendChild(opt);
+    });
+  }
+
+  // Top-level region options.
+  fillOptions(countrySelect, TOP_REGIONS.map(function (c) { return { value: c, label: c }; }));
+  countrySelect.value = state.country;
+
+  // Show/hide + populate the second (state) dropdown based on the top-level pick.
+  function syncStateDropdown() {
+    if (state.country === 'India') {
+      fillOptions(stateSelect, INDIA_STATES.map(function (s) { return { value: s, label: s }; }));
+      if (INDIA_STATES.indexOf(state.region) < 0) state.region = INDIA_STATES[0];
+      stateSelect.value = state.region;
+      stateGroup.hidden = false;
+    } else {
+      state.region = state.country;   // the country is the region
+      stateGroup.hidden = true;
+    }
+  }
+  syncStateDropdown();
+
+  // Role options depend on the effective region.
+  function refreshRoles() {
+    var roles = rolesFor(state.region);
+    var keys = Object.keys(roles);
+    fillOptions(roleSelect, keys.map(function (key) {
+      return { value: key, label: roles[key] };
+    }));
+    if (keys.indexOf(state.role) < 0) state.role = keys[0];
+    roleSelect.value = state.role;
+  }
+  refreshRoles();
+
+  function setError(msg) {
+    state.error = msg;
+    if (msg) {
+      errorBox.textContent = '⚠️ ' + msg;
+      errorBox.hidden = false;
+    } else {
+      errorBox.textContent = '';
+      errorBox.hidden = true;
+    }
+  }
+
+  function setLoading(isLoading) {
+    state.loading = isLoading;
+    loginBtn.disabled = isLoading;
+    roleSelect.disabled = isLoading;
+    countrySelect.disabled = isLoading;
+    stateSelect.disabled = isLoading;
+    userInput.disabled = isLoading;
+    passInput.disabled = isLoading;
+    pwToggle.disabled = isLoading;
+    rememberBox.disabled = isLoading;
+    loginBtn.textContent = isLoading ? 'Logging in...' : 'Login';
+  }
+
+  // After login, open the dashboard page for the selected region.
+  function onLogin(name, role, region) {
+    var page = COUNTRY_PAGES[region];
+    console.log('onLogin', { name: name, role: role, region: region, page: page });
+    if (!page) {
+      setLoading(false);
+      setError('No dashboard is available for ' + region);
+      return;
+    }
+
+    // Record the session so the dashboards can verify the user came through login.
+    // Client-side only — this gates navigation, it is not real security.
+    try {
+      sessionStorage.setItem(AUTH_KEY, JSON.stringify({
+        user: name,
+        role: role,
+        roleName: roleLabel(region, role),
+        region: region,
+        ts: Date.now()
+      }));
+    } catch (e) { /* private mode — dashboards fall back to the query string */ }
+
+    // Pass the user details along so the dashboard can show who is logged in.
+    var query = '?user=' + encodeURIComponent(name) +
+                '&role=' + encodeURIComponent(role) +
+                '&roleName=' + encodeURIComponent(roleLabel(region, role));
+    window.location.href = encodeURI(page) + query;
+  }
+
+  function performLogin() {
+    console.log('Login clicked with:', state.username, state.role, state.region);
+    setError('');
+
+    var u = state.username.trim().toLowerCase();
+    if (!u || !state.password) {
+      setError('Enter username and password');
+      return;
+    }
+    if (CREDENTIALS[u] !== state.password) {
+      setError('Invalid username or password');
+      return;
+    }
+
+    persistRemembered();
+
+    console.log('Attempting login...');
+    setLoading(true);
+
+    setTimeout(function () {
+      console.log('Calling onLogin');
+      onLogin(state.username.trim(), state.role, state.region);
+    }, 300);
+  }
+
+  userInput.addEventListener('input', function (e) { state.username = e.target.value; });
+  passInput.addEventListener('input', function (e) { state.password = e.target.value; });
+
+  /* ---------- Show / hide password ---------- */
+  var EYE_SHOW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var EYE_HIDE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+
+  function setPasswordVisible(visible) {
+    passInput.type = visible ? 'text' : 'password';
+    pwToggle.innerHTML = visible ? EYE_HIDE : EYE_SHOW;
+    pwToggle.setAttribute('aria-pressed', visible ? 'true' : 'false');
+    var label = visible ? 'Hide password' : 'Show password';
+    pwToggle.setAttribute('aria-label', label);
+    pwToggle.title = label;
+  }
+  setPasswordVisible(false);
+
+  pwToggle.addEventListener('click', function () {
+    setPasswordVisible(passInput.type === 'password');
+    passInput.focus();
+  });
+
+  /* ---------- Remember me ---------- */
+  // Prefill from a previous "Remember me" login.
+  // NOTE: the password is stored in this browser's localStorage in plain text.
+  // Only tick the box on a device you trust.
+  (function restoreRemembered() {
+    try {
+      var saved = JSON.parse(localStorage.getItem(REMEMBER_KEY) || 'null');
+      if (!saved || !saved.username) return;
+      userInput.value = saved.username;
+      state.username = saved.username;
+      passInput.value = saved.password || '';
+      state.password = saved.password || '';
+      rememberBox.checked = true;
+    } catch (e) {}
+  })();
+
+  // Unticking the box forgets the saved details straight away.
+  rememberBox.addEventListener('change', function () {
+    if (!rememberBox.checked) {
+      try { localStorage.removeItem(REMEMBER_KEY); } catch (e) {}
+    }
+  });
+
+  function persistRemembered() {
+    try {
+      if (rememberBox.checked) {
+        localStorage.setItem(REMEMBER_KEY, JSON.stringify({
+          username: state.username.trim(),
+          password: state.password
+        }));
+      } else {
+        localStorage.removeItem(REMEMBER_KEY);
+      }
+    } catch (e) {}
+  }
+
+  roleSelect.addEventListener('change', function (e) {
+    console.log('Role changed:', e.target.value);
+    state.role = e.target.value;
+  });
+
+  countrySelect.addEventListener('change', function (e) {
+    console.log('Region changed:', e.target.value);
+    state.country = e.target.value;
+    syncStateDropdown();
+    refreshRoles();
+  });
+
+  stateSelect.addEventListener('change', function (e) {
+    console.log('State changed:', e.target.value);
+    state.region = e.target.value;
+    refreshRoles();
+  });
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    performLogin();
+  });
+</script>
+</body>
+</html>
