@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriMap · LivestockMap Nigeria - SkyQuest Technology Group</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<style>
+:root{--bg:#060a10;--p1:#0c1220;--p2:#101a2c;--bd:#1c2536;--bd2:#2a3550;--t1:#e6edf7;--t2:#8b98ad;--t3:#5c6a80;
+--gn:#10b981;--gnd:#064e3b;--am:#f59e0b;--rd:#ef4444;--bl:#3b82f6;--pu:#8b5cf6;--cy:#06b6d4;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--t1);font:13px/1.5 -apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased}
+code,.mono{font-family:'SF Mono',Consolas,'JetBrains Mono',monospace}
+a{color:var(--gn)}
+.hid{display:none!important}
+/* ---------- login ---------- */
+#login{position:fixed;inset:0;background:radial-gradient(1200px 600px at 70% -10%,#0e2a1e 0%,var(--bg) 55%);z-index:900;overflow:auto;padding:34px 18px}
+.lg-wrap{max-width:1060px;margin:0 auto}
+.lg-brand{font-size:30px;font-weight:800;letter-spacing:-.5px}
+.lg-brand b{color:var(--gn)}
+.lg-sub{color:var(--t2);margin:6px 0 4px;font-size:13px}
+.lg-flag{display:inline-block;width:26px;height:16px;border-radius:2px;background:linear-gradient(90deg,#008751 33%,#fff 33%,#fff 66%,#008751 66%);vertical-align:-2px;margin-right:8px;border:1px solid #1c2536}
+.lg-note{background:var(--p1);border:1px solid var(--bd);border-radius:10px;padding:10px 14px;color:var(--t2);font-size:11.5px;margin:14px 0 20px}
+.lg-note b{color:var(--am)}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.rcard{background:var(--p1);border:1px solid var(--bd);border-radius:12px;padding:13px 14px;cursor:pointer;transition:.15s}
+.rcard:hover{border-color:var(--gn);transform:translateY(-2px)}
+.rcard .ri{font-size:21px}
+.rcard .rn{font-weight:700;margin-top:5px;font-size:12.5px}
+.rcard .rd{color:var(--t2);font-size:10.5px;margin-top:2px}
+.lg-lang{margin:0 0 16px}
+.lg-lang button,.langbtn{background:var(--p1);border:1px solid var(--bd);color:var(--t2);border-radius:8px;padding:5px 11px;cursor:pointer;font-size:11.5px;margin-right:6px}
+.lg-lang button.on,.langbtn.on{border-color:var(--gn);color:var(--gn);font-weight:700}
+/* ---------- topbar ---------- */
+#top{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--bd);position:sticky;top:0;background:rgba(6,10,16,.94);backdrop-filter:blur(6px);z-index:500;flex-wrap:wrap}
+#top .brand{font-weight:800;font-size:15px;white-space:nowrap}
+#top .brand b{color:var(--gn)}
+.chip{background:var(--p1);border:1px solid var(--bd);border-radius:999px;padding:3px 11px;font-size:11px;color:var(--t2);white-space:nowrap}
+.chip.g{border-color:var(--gnd);color:var(--gn)}
+.spacer{flex:1}
+.tbtn{background:var(--p1);border:1px solid var(--bd);color:var(--t1);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:11.5px}
+.tbtn:hover{border-color:var(--gn)}
+.tbtn.ai{border-color:var(--pu);color:#c4b5fd}
+/* ---------- dashbar ---------- */
+#dash{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;padding:10px 14px;border-bottom:1px solid var(--bd)}
+.kpi{background:var(--p1);border:1px solid var(--bd);border-radius:10px;padding:8px 11px}
+.kpi .kv{font-size:16px;font-weight:800}
+.kpi .kl{font-size:10px;color:var(--t2);margin-top:1px}
+.kpi .kt{font-size:9px;color:var(--t3)}
+/* ---------- layout ---------- */
+#main{display:grid;grid-template-columns:390px 1fr;gap:0;min-height:calc(100vh - 110px)}
+#left{border-right:1px solid var(--bd);display:flex;flex-direction:column}
+#map{height:340px;background:var(--p1)}
+#mapfall{display:none;height:340px;padding:16px;color:var(--t2);font-size:12px;background:var(--p1)}
+.lgd{padding:7px 12px;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);font-size:10.5px;color:var(--t2);display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:3px;vertical-align:-1px}
+#metricsel{background:var(--p1);border:1px solid var(--bd);color:var(--t1);border-radius:6px;padding:3px 6px;font-size:11px}
+#slist{flex:1;overflow:auto;max-height:420px}
+.srow{display:flex;justify-content:space-between;align-items:center;padding:7px 13px;border-bottom:1px solid #0d1524;cursor:pointer;font-size:12px}
+.srow:hover,.srow.on{background:var(--p2)}
+.srow .sz{color:var(--t3);font-size:10px}
+.srow .sv{color:var(--t2);font-size:11px}
+/* ---------- panel ---------- */
+#right{padding:0 0 40px;min-width:0}
+#tabs{display:flex;gap:4px;padding:9px 12px 0;border-bottom:1px solid var(--bd);overflow-x:auto}
+.tab{padding:8px 13px;border:1px solid transparent;border-bottom:none;border-radius:9px 9px 0 0;cursor:pointer;color:var(--t2);font-size:12px;white-space:nowrap}
+.tab.on{background:var(--p1);border-color:var(--bd);color:var(--t1);font-weight:700}
+#subbar{display:flex;gap:5px;padding:8px 12px;flex-wrap:wrap;border-bottom:1px solid var(--bd)}
+.sub{padding:4px 11px;border:1px solid var(--bd);border-radius:999px;cursor:pointer;color:var(--t2);font-size:11px;background:var(--p1)}
+.sub.on{border-color:var(--gn);color:var(--gn);font-weight:700}
+#panel{padding:13px 14px;max-width:1150px}
+.card{background:var(--p1);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;margin-bottom:11px}
+.card.gn{border-color:var(--gnd)}
+.card.am{border-color:#7c5806}
+.ch{font-weight:800;font-size:13px;margin-bottom:7px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
+@media(max-width:1150px){.grid4{grid-template-columns:1fr 1fr}.grid3{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){#main{grid-template-columns:1fr}#left{border-right:none}.grid2{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+th{text-align:left;color:var(--t3);font-size:10px;text-transform:uppercase;letter-spacing:.4px;padding:5px 7px;border-bottom:1px solid var(--bd)}
+td{padding:5.5px 7px;border-bottom:1px solid #0d1524;vertical-align:top}
+tr:hover td{background:#0d1524}
+.pv{font-size:9px;border-radius:4px;padding:1px 5px;font-weight:700;letter-spacing:.3px}
+.pv.of{background:#064e3b;color:#6ee7b7}.pv.es{background:#78350f;color:#fcd34d}.pv.mo{background:#3b2a6b;color:#c4b5fd}.pv.il{background:#374151;color:#d1d5db}.pv.lv{background:#0c4a6e;color:#7dd3fc}
+.bar{height:8px;background:#0d1524;border-radius:5px;overflow:hidden;margin:3px 0}
+.bar i{display:block;height:100%;background:var(--gn)}
+.big{font-size:19px;font-weight:800}
+.mut{color:var(--t2);font-size:11px}
+.tag{display:inline-block;border:1px solid var(--bd2);border-radius:6px;padding:1px 7px;font-size:10px;color:var(--t2);margin:1px 3px 1px 0}
+.pill-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.ppill{border:1px solid var(--bd);border-radius:999px;padding:4px 12px;font-size:11px;cursor:pointer;color:var(--t2);background:var(--p1)}
+.ppill.on{border-color:var(--pu);color:#c4b5fd;font-weight:700}
+button.act{background:var(--gnd);border:1px solid var(--gn);color:#a7f3d0;border-radius:8px;padding:6px 13px;cursor:pointer;font-size:11.5px}
+input,select{background:var(--p2);border:1px solid var(--bd);color:var(--t1);border-radius:7px;padding:6px 8px;font-size:12px}
+/* ---------- AI drawer ---------- */
+#ai{position:fixed;right:0;top:0;bottom:0;width:min(430px,95vw);background:var(--p1);border-left:1px solid var(--bd2);z-index:800;display:none;flex-direction:column}
+#ai.open{display:flex}
+#ai .aih{padding:12px 14px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center}
+#ailog{flex:1;overflow:auto;padding:12px}
+.msg{border-radius:11px;padding:9px 12px;margin-bottom:9px;font-size:12px;max-width:92%}
+.msg.u{background:#123024;margin-left:auto}
+.msg.a{background:var(--p2);border:1px solid var(--bd)}
+#aiin{display:flex;gap:7px;padding:11px;border-top:1px solid var(--bd)}
+#aiq{flex:1}
+.foot{color:var(--t3);font-size:10px;padding:9px 14px;border-top:1px solid var(--bd);margin-top:22px}
+</style>
+</head>
+<body>
+<!-- ============ LOGIN ============ -->
+<div id="login">
+ <div class="lg-wrap">
+  <div class="lg-brand"><span class="lg-flag"></span>Agri<b>Map</b> · Livestock<b>Map</b> Nigeria</div>
+  <div class="lg-sub">The Connected Agri Platform · 36 States + FCT · Six-Pillar Monetisation · SkyQuest Technology Group</div>
+  <div class="lg-lang" id="lglang"></div>
+  <div class="lg-note"><b>Demo build.</b> Data marked <span class="pv of">OFFICIAL</span> (published govt/partner sources), <span class="pv es">EST.</span> (estimates from public reporting), <span class="pv mo">MODELLED</span> (Uganda/Ethiopia-calibrated SPV model, to be validated) or <span class="pv il">ILLUSTRATIVE</span> (generated demo assets). Nothing here is a commitment.</div>
+  <div class="rgrid" id="rgrid"></div>
+ </div>
+</div>
+<!-- ============ APP ============ -->
+<div id="app" class="hid">
+ <div id="top">
+  <span class="brand">Agri<b>Map</b>·Livestock<b>Map</b> <span class="chip g">NIGERIA</span></span>
+  <span class="chip" id="rolechip"></span>
+  <span class="spacer"></span>
+  <span id="toplang"></span>
+  <button class="tbtn ai" onclick="aiToggle()" id="aibtn">✨ AI Assistant</button>
+  <button class="tbtn" onclick="doLogout()" id="lgout">Logout</button>
+ </div>
+ <div id="dash"></div>
+ <div id="main">
+  <div id="left">
+   <div id="map"></div>
+   <div id="mapfall"></div>
+   <div class="lgd"><span id="lgdtxt"></span><span class="spacer"></span>
+    <select id="metricsel" onchange="setMetric(this.value)"></select></div>
+   <div id="slist"></div>
+  </div>
+  <div id="right">
+   <div id="tabs"></div>
+   <div id="subbar"></div>
+   <div id="panel"></div>
+   <div class="foot">AgriMap · LivestockMap Nigeria - demo by SkyQuest Technology Group · skyquestt.com · Strictly confidential · All financial figures indicative/modelled pending validation</div>
+  </div>
+ </div>
+</div>
+<!-- ============ AI DRAWER ============ -->
+<div id="ai">
+ <div class="aih"><b id="aititle">✨ AgriMap AI Assistant</b><button class="tbtn" onclick="aiToggle()">✕</button></div>
+ <div id="ailog"></div>
+ <div id="aiin"><input id="aiq" placeholder="Ask about prices, credit, equipment, vouchers..." onkeydown="if(event.key==='Enter')aiSend()"><button class="act" onclick="aiSend()" id="aisend">Send</button></div>
+</div>
+<script>
+/* ===================== I18N - EN full · HA/YO/IG chrome + key terms (pilot) ===================== */
+var LANGS=[['en','English'],['ha','Hausa'],['yo','Yorùbá'],['ig','Igbo']];
+var TR={
+ha:{overview:'Bayani',production:'Noma',market:'Kasuwanni',livestock:'Dabbobi',monetise:'Kudade',strategy:'Dabaru',sources:'Majiya',
+farmer:'Manomi / Makiyayi',price:'Farashi',equipment:'Kayan aiki',storage:'Ajiya',processing:'Sarrafawa',inputs:'Kayan shuka',finance:'Kudi',
+login_hint:'Zabi matsayinka',logout:'Fita',send:'Aika',ask:'Tambaya',submit_price:'Mika farashi',population:'Yawan jama\u02bea',
+farm_hh:'Gidajen manoma',cattle:'Shanu',ai_title:'\u2728 Mataimakin AI na AgriMap',ai_hint:'Tambayi game da farashi, bashi, kayan aiki, e-voucher...'},
+yo:{overview:'Àkópọ̀',production:'Ìmújáde',market:'Ọjà',livestock:'Ẹran ọ̀sìn',monetise:'Owó',strategy:'Ìlànà',sources:'Oríṣun',
+farmer:'Àgbẹ̀ / Darandaran',price:'Iye owó',equipment:'Ohun èlò',storage:'Ìpamọ́',processing:'Ìṣèdá',inputs:'Ohun èlò oko',finance:'Ìnáwó',
+login_hint:'Yan ipa rẹ',logout:'Jáde',send:'Fi ránṣẹ́',ask:'Béèrè',submit_price:'Fi iye owó silẹ̀',population:'Iye ènìyàn',
+farm_hh:'Ilé àgbẹ̀',cattle:'Màlúù',ai_title:'\u2728 Olùrànlọ́wọ́ AI AgriMap',ai_hint:'Béèrè nípa iye owó, àwìn, ohun èlò...'},
+ig:{overview:'Nchịkọta',production:'Mmepụta',market:'Ahịa',livestock:'Anụ ụlọ',monetise:'Ego',strategy:'Atụmatụ',sources:'Isi mmalite',
+farmer:'Onye ọrụ ugbo',price:'Ọnụahịa',equipment:'Ngwá ọrụ',storage:'Nchekwa',processing:'Nhazi',inputs:'Ihe ọkụkụ',finance:'Ego',
+login_hint:'Họrọ ọrụ gị',logout:'Pụọ',send:'Ziga',ask:'Jụọ',submit_price:'Nyefee ọnụahịa',population:'Ọnụ ọgụgụ mmadụ',
+farm_hh:'Ezinụlọ ugbo',cattle:'Ehi',ai_title:'\u2728 Onye inyeaka AI AgriMap',ai_hint:'Jụọ maka ọnụahịa, mbinye ego, ngwá ọrụ...'}};
+var LANG='en';
+function t(k,en){if(LANG==='en')return en;var d=TR[LANG];return (d&&d[k])||en;}
+/* ===================== DATA - 36 STATES + FCT [pop EST. NBS/NPC projections; splits MODELLED] ===================== */
+/* fields: id,n(ame),z(one),cap(ital),lat,lng,pop(M),cw(cattle weight 0-10),crops */
+var STATES=[
+{id:'sokoto',n:'Sokoto',z:'NW',cap:'Sokoto',lat:13.06,lng:5.24,pop:6.0,cw:9,crops:['millet','sorghum','rice','onion','wheat']},
+{id:'zamfara',n:'Zamfara',z:'NW',cap:'Gusau',lat:12.16,lng:6.66,pop:5.3,cw:8,crops:['millet','sorghum','maize','cotton']},
+{id:'katsina',n:'Katsina',z:'NW',cap:'Katsina',lat:12.99,lng:7.60,pop:9.3,cw:8,crops:['millet','sorghum','cotton','groundnut','tomato']},
+{id:'jigawa',n:'Jigawa',z:'NW',cap:'Dutse',lat:11.76,lng:9.34,pop:7.2,cw:7,crops:['rice','millet','sesame','wheat','hibiscus']},
+{id:'kano',n:'Kano',z:'NW',cap:'Kano',lat:12.00,lng:8.52,pop:15.5,cw:8,crops:['rice','maize','tomato','wheat','groundnut']},
+{id:'kaduna',n:'Kaduna',z:'NW',cap:'Kaduna',lat:10.52,lng:7.44,pop:9.0,cw:8,crops:['maize','ginger','soybean','tomato','rice']},
+{id:'kebbi',n:'Kebbi',z:'NW',cap:'Birnin Kebbi',lat:12.45,lng:4.20,pop:5.0,cw:7,crops:['rice','millet','wheat','onion']},
+{id:'borno',n:'Borno',z:'NE',cap:'Maiduguri',lat:11.85,lng:13.16,pop:6.1,cw:8,crops:['sorghum','millet','cowpea','pepper']},
+{id:'yobe',n:'Yobe',z:'NE',cap:'Damaturu',lat:11.75,lng:11.96,pop:3.8,cw:7,crops:['millet','sorghum','sesame','gum arabic']},
+{id:'bauchi',n:'Bauchi',z:'NE',cap:'Bauchi',lat:10.31,lng:9.84,pop:7.5,cw:7,crops:['maize','sorghum','rice','cowpea']},
+{id:'gombe',n:'Gombe',z:'NE',cap:'Gombe',lat:10.29,lng:11.17,pop:3.9,cw:6,crops:['maize','sorghum','cotton','tomato']},
+{id:'adamawa',n:'Adamawa',z:'NE',cap:'Yola',lat:9.23,lng:12.46,pop:4.9,cw:8,crops:['maize','rice','groundnut','cowpea']},
+{id:'taraba',n:'Taraba',z:'NE',cap:'Jalingo',lat:8.89,lng:11.36,pop:3.5,cw:8,crops:['maize','rice','tea','dairy']},
+{id:'niger',n:'Niger',z:'NC',cap:'Minna',lat:9.61,lng:6.55,pop:6.2,cw:6,crops:['rice','yam','maize','shea','soybean']},
+{id:'kwara',n:'Kwara',z:'NC',cap:'Ilorin',lat:8.50,lng:4.55,pop:3.5,cw:4,crops:['maize','cassava','rice','soybean']},
+{id:'kogi',n:'Kogi',z:'NC',cap:'Lokoja',lat:7.80,lng:6.74,pop:4.5,cw:4,crops:['cassava','yam','rice','cashew']},
+{id:'benue',n:'Benue',z:'NC',cap:'Makurdi',lat:7.73,lng:8.54,pop:6.1,cw:4,crops:['yam','rice','soybean','sesame','citrus']},
+{id:'plateau',n:'Plateau',z:'NC',cap:'Jos',lat:9.92,lng:8.86,pop:4.7,cw:5,crops:['irish potato','maize','vegetables','dairy']},
+{id:'nasarawa',n:'Nasarawa',z:'NC',cap:'Lafia',lat:8.49,lng:8.52,pop:2.9,cw:4,crops:['sesame','rice','yam','maize']},
+{id:'fct',n:'FCT Abuja',z:'NC',cap:'Abuja',lat:9.06,lng:7.49,pop:3.8,cw:2,crops:['maize','yam','vegetables','poultry']},
+{id:'lagos',n:'Lagos',z:'SW',cap:'Ikeja',lat:6.60,lng:3.35,pop:13.9,cw:1,crops:['vegetables','poultry','aquaculture','rice']},
+{id:'ogun',n:'Ogun',z:'SW',cap:'Abeokuta',lat:7.15,lng:3.35,pop:6.0,cw:2,crops:['cassava','poultry','rice','oil palm']},
+{id:'oyo',n:'Oyo',z:'SW',cap:'Ibadan',lat:7.38,lng:3.90,pop:7.8,cw:3,crops:['cassava','maize','cocoa','poultry']},
+{id:'osun',n:'Osun',z:'SW',cap:'Osogbo',lat:7.77,lng:4.54,pop:4.7,cw:1,crops:['cocoa','cassava','oil palm','plantain']},
+{id:'ondo',n:'Ondo',z:'SW',cap:'Akure',lat:7.25,lng:5.19,pop:5.3,cw:1,crops:['cocoa','oil palm','cassava','rubber']},
+{id:'ekiti',n:'Ekiti',z:'SW',cap:'Ado-Ekiti',lat:7.62,lng:5.22,pop:3.4,cw:1,crops:['rice','cocoa','cassava','yam']},
+{id:'anambra',n:'Anambra',z:'SE',cap:'Awka',lat:6.21,lng:7.07,pop:5.9,cw:1,crops:['rice','cassava','yam','vegetables']},
+{id:'enugu',n:'Enugu',z:'SE',cap:'Enugu',lat:6.44,lng:7.51,pop:4.7,cw:1,crops:['cassava','rice','oil palm','poultry']},
+{id:'ebonyi',n:'Ebonyi',z:'SE',cap:'Abakaliki',lat:6.32,lng:8.11,pop:3.2,cw:1,crops:['rice','cassava','yam']},
+{id:'imo',n:'Imo',z:'SE',cap:'Owerri',lat:5.48,lng:7.03,pop:5.5,cw:1,crops:['cassava','oil palm','plantain','poultry']},
+{id:'abia',n:'Abia',z:'SE',cap:'Umuahia',lat:5.53,lng:7.49,pop:4.1,cw:1,crops:['cassava','oil palm','cocoa','plantain']},
+{id:'edo',n:'Edo',z:'SS',cap:'Benin City',lat:6.34,lng:5.62,pop:4.8,cw:1,crops:['oil palm','cassava','rubber','plantain']},
+{id:'delta',n:'Delta',z:'SS',cap:'Asaba',lat:6.20,lng:6.73,pop:5.7,cw:1,crops:['cassava','oil palm','aquaculture','plantain']},
+{id:'bayelsa',n:'Bayelsa',z:'SS',cap:'Yenagoa',lat:4.92,lng:6.26,pop:2.5,cw:0,crops:['aquaculture','oil palm','plantain','cassava']},
+{id:'rivers',n:'Rivers',z:'SS',cap:'Port Harcourt',lat:4.82,lng:7.01,pop:7.5,cw:0,crops:['cassava','aquaculture','oil palm','vegetables']},
+{id:'akwaibom',n:'Akwa Ibom',z:'SS',cap:'Uyo',lat:5.04,lng:7.92,pop:5.5,cw:0,crops:['oil palm','cassava','aquaculture','rice']},
+{id:'crossriver',n:'Cross River',z:'SS',cap:'Calabar',lat:4.96,lng:8.33,pop:4.2,cw:1,crops:['cocoa','oil palm','rice','banana']}];
+var ZONES={NW:'North-West',NE:'North-East',NC:'North-Central',SW:'South-West',SE:'South-East',SS:'South-South'};
+var SILO_STATES=['kano','kaduna','kebbi','niger','benue','oyo','gombe','bauchi','ogun','kwara','akwaibom','ebonyi','jigawa','sokoto'];
+var SAPZ1=['kaduna','kano','ogun','oyo','imo','crossriver','kwara','fct'];
+/* national control totals */
+var NAT={pop:'227M',hh:'~38M',cattle:'~21M',sheep:'~47M',goats:'~80M+',poultry:'~250M+',milk:'~0.7B L/yr (vs ~1.7B L demand)',
+imports:'USD ~10B/yr food imports',phl:'30-45% post-harvest losses',mech:'~0.27 hp/ha',arable:'70M+ ha arable, ~34M ha cultivated'};
+/* prices - [EST.] indicative wholesale mid-2026, naira volatile */
+var PRICES={
+maize:{n:'Maize',u:'\u20a6/kg',p:620,lo:480,hi:780,tr:'up',note:'Lean season peaks May-Aug; northern harvest eases Oct-Dec'},
+paddy:{n:'Rice (paddy)',u:'\u20a6/kg',p:720,lo:560,hi:900,tr:'up',note:'Kebbi/Kano/Ebonyi mill demand anchors floor'},
+rice_m:{n:'Rice (milled, local)',u:'\u20a6/kg',p:1550,lo:1300,hi:1900,tr:'flat',note:'Tracks 50kg bag \u20a665-95K; import parity sensitive to FX'},
+sorghum:{n:'Sorghum',u:'\u20a6/kg',p:560,lo:430,hi:700,tr:'flat',note:'Brewery + feed demand (industrial offtake)'},
+soybean:{n:'Soybean',u:'\u20a6/kg',p:950,lo:780,hi:1150,tr:'up',note:'Crush + poultry feed demand strong'},
+tomato:{n:'Tomato',u:'\u20a6/kg',p:420,lo:150,hi:950,tr:'vol',note:'Extreme glut-scarcity cycle; 40%+ losses; cold chain arbitrage'},
+yam:{n:'Yam',u:'\u20a6/kg',p:750,lo:550,hi:1000,tr:'flat',note:'Benue/Nasarawa belt; festival demand spikes'},
+garri:{n:'Garri',u:'\u20a6/kg',p:820,lo:650,hi:1050,tr:'flat',note:'Cassava value chain reference product'},
+sesame:{n:'Sesame',u:'\u20a6/kg',p:2400,lo:1900,hi:2900,tr:'up',note:'Export crop; Japan/China demand; quality premium at export'},
+cocoa:{n:'Cocoa',u:'\u20a6/kg',p:8500,lo:6500,hi:11000,tr:'vol',note:'World price driven; SW belt; EUDR traceability now decisive'},
+cattle:{n:'Cattle (bull, mature)',u:'\u20a6/head',p:850000,lo:450000,hi:1400000,tr:'up',note:'Kara markets; Sallah premium; northern corridor supply'},
+ram:{n:'Ram (Sallah grade)',u:'\u20a6/head',p:280000,lo:150000,hi:650000,tr:'vol',note:'Sallah campaign moves millions of animals'},
+goat:{n:'Goat',u:'\u20a6/head',p:85000,lo:45000,hi:160000,tr:'flat',note:''},
+broiler:{n:'Broiler (live)',u:'\u20a6/bird',p:11500,lo:8000,hi:16000,tr:'up',note:'Feed cost pass-through (maize+soy)'},
+eggs:{n:'Eggs (crate)',u:'\u20a6/crate',p:5800,lo:4800,hi:6800,tr:'up',note:''},
+milk:{n:'Raw milk (farmgate)',u:'\u20a6/L',p:550,lo:420,hi:700,tr:'up',note:'WAMCO-type collection anchor prices'}};
+/* market data feeds [OFFICIAL existence] */
+var FEEDS=[
+{n:'AFEX',ty:'Commodity exchange',what:'Exchange prices, warehouse receipts, 200+ warehouses',mode:'API'},
+{n:'Nigeria Commodity Exchange (NCX)',ty:'Exchange',what:'Structured trade, warehouse receipt system',mode:'Feed'},
+{n:'NBS Food Price Watch',ty:'Government (monthly)',what:'Retail food prices, all states',mode:'Publication'},
+{n:'NAERLS / FMAFS market info',ty:'Government',what:'Extension + wet-season performance surveys',mode:'Reports'},
+{n:'Novus Agro',ty:'Private MIS',what:'Market price feeds from physical enumerators',mode:'API/scrape'},
+{n:'Sabi / TradeDepot',ty:'B2B commerce',what:'Informal retail + FMCG demand signals',mode:'Partnership'},
+{n:'RESIMAO / ECOWAS',ty:'Regional network',what:'West African market info system, cross-border',mode:'Feed'},
+{n:'FEWS NET',ty:'Early warning',what:'Food security outlooks, staple price bulletins',mode:'Publication'},
+{n:'WFP VAM / FAO GIEWS',ty:'Multilateral',what:'Market monitors, price anomalies',mode:'API'}];
+var BORDER_FLOWS=[
+{b:'Illela-Konni (Niger)',flow:'Livestock IN · grain OUT (informal)',note:'Sahel cattle corridor into northern kara markets'},
+{b:'Jibiya-Maradi (Niger)',flow:'Livestock + cowpea IN · manufactures OUT',note:'Katsina axis'},
+{b:'Banki/Gamboru (Cameroon-Chad)',flow:'Livestock IN · cereals two-way',note:'Security-sensitive corridor, high informality'},
+{b:'Seme-Krake (Benin)',flow:'Rice + palm oil IN (informal) · manufactures OUT',note:'Historic parboiled-rice smuggling route'},
+{b:'Mfum-Ekok (Cameroon)',flow:'Cocoa, palm oil two-way',note:'South-east corridor'}];
+/* financial ecosystem [OFFICIAL existence; terms EST.] */
+var FIN=[
+{cat:'Development & agri banks',items:[['Bank of Agriculture (BOA)','Restructuring underway; the natural balance-sheet host for farm credit'],['Development Bank of Nigeria (DBN)','Wholesale lines through PFIs'],['NIRSAL','Credit risk guarantees (up to 75%), tech assistance, insurance facilitation']]},
+{cat:'Commercial banks (agri desks)',items:[['Sterling Bank','Agri-focused desk, SABEX warehouse e-receipt platform'],['FCMB / Access / Zenith / UBA','Agri portfolios, anchor + offtake structures'],['Jaiz / Taj (non-interest)','Murabaha input finance, strong northern reach']]},
+{cat:'Fintech & agent rails',items:[['Moniepoint / OPay / Paga / PalmPay','1.5M+ POS agents nationally; rural cash-in/out'],['NIBSS / BVN / NIN','Instant payments + identity: the decisive Nigerian advantage'],['Crop2Cash / ThriveAgric / Winich','Agri-fintechs: input credit, offtake, USSD farmer wallets']]},
+{cat:'Insurance',items:[['NAIC','Statutory agricultural insurer, subsidised premiums'],['Leadway / AXA Mansard','Private agric + index products'],['Pula-type index insurers','Satellite index insurance at scale (bundled into credit)']]},
+{cat:'Guarantees & public capital',items:[['NSIA','Sovereign fund: PFI fertiliser, agri infrastructure precedents - the NAMCO/EIH analogue'],['InfraCredit','Naira infrastructure guarantees, listed-bond pathway'],['ACGSF (CBN)','Smallholder credit guarantee scheme, long-running']]},
+{cat:'Voucher & subsidy rails',items:[['NAGS-AP (AfDB)','NIN-linked e-voucher input scheme, successor to GES'],['GES legacy (2012-15)','~14M farmers reached by e-wallet; lessons: leakage, ghost farmers'],['State schemes','State input subsidy programmes, variable digitisation']]}];
+/* programmes [OFFICIAL] */
+var PROGS=[
+{n:'SAPZ (AfDB-led)',d:'Special Agro-Industrial Processing Zones: Phase 1 USD 538M across 8 states; Phase 2 pipeline announced',map:'P4 marketplace fills funded capacity'},
+{n:'NAGS-AP',d:'National Agricultural Growth Scheme - Agro-Pocket: AfDB-backed, NIN-linked input e-vouchers',map:'P6 backbone'},
+{n:'L-PRES (World Bank)',d:'Livestock Productivity & Resilience Support, ~USD 500M',map:'LivestockMap = operations rail'},
+{n:'ACReSAL (World Bank)',d:'Agro-Climatic Resilience in Semi-Arid Landscapes, ~USD 700M, 19 northern states',map:'Land + climate layers'},
+{n:'NLTP + FMLD',d:'National Livestock Transformation Plan; Federal Ministry of Livestock Development created 2024',map:'Political home for LivestockMap'},
+{n:'Green Imperative',d:'Brazil-Nigeria mechanisation programme (tractors + assembly)',map:'P1 fleet onboarding'},
+{n:'VCDP / LIFE-ND (IFAD)',d:'Value Chain Development Programme (rice/cassava); Niger Delta agripreneurship',map:'Zone operators + agents'},
+{n:'Propcom+ (FCDO)',d:'Market systems development, northern Nigeria',map:'Market linkage co-design'},
+{n:'2SCALE (Netherlands)',d:'Agribusiness PPPs and inclusive value chains',map:'Offtaker partnerships'},
+{n:'Strategic Food Reserve',d:'Federal reserve + 33 silo complexes (~1.3M MT, concessioned)',map:'P3 anchor inventory'}];
+/* livestock national [EST. FMLD/NBS] */
+var LV={cattle:'21M',sheep:'47M',goats:'80M+',poultry:'250M+',dairyImport:'~USD 1.5B/yr dairy imports',
+reserves:'415 gazetted grazing reserves (~2% developed)',conflict:'Farmer-herder conflict: multi-billion USD annual cost',
+sallah:'Millions of rams traded in the annual Sallah campaign'};
+var LV_PRICES=[['Bull (mature)','\u20a6450K-1.4M'],['In-calf heifer (crossbred)','\u20a6500K-900K'],['Dairy cow (in-milk)','\u20a6600K-1.1M'],['Ram (Sallah grade)','\u20a6150K-650K'],['Goat','\u20a645K-160K'],['Broiler (live)','\u20a68K-16K']];
+/* SPV revenue - 8 streams [MODELLED - Uganda/NAMCO + Ethiopia calibration, to validate] */
+var MZ_REV=[
+{s:'1 · Equipment sharing & mechanisation',y1:'0.15-0.35',y3:'0.6-1.2',y5:'1.5-2.3',b5:'2.8-4.0',basis:'8-12% booking commission · telemetry SaaS · operator certification'},
+{s:'2 · Storage & supply-chain marketplace',y1:'0.10-0.25',y3:'0.5-0.9',y5:'1.2-2.0',b5:'2.2-3.4',basis:'Listing fees · 5-10% booking commission · per-tonne WRS fees'},
+{s:'3 · Processing capacity marketplace',y1:'0.10-0.25',y3:'0.6-1.0',y5:'1.7-2.7',b5:'3.0-4.6',basis:'2-4% intermediation on routed toll volumes · certification'},
+{s:'4 · Market intelligence & data',y1:'0.15-0.35',y3:'0.7-1.1',y5:'1.6-2.4',b5:'2.6-3.8',basis:'Data subscriptions · buyer verification · agent-network sponsorship'},
+{s:'5 · Financial services distribution',y1:'0.15-0.35',y3:'0.8-1.3',y5:'2.0-3.2',b5:'3.6-5.4',basis:'0.5-1% origination · 1-2% collections check-off · 10-15% insurance commission'},
+{s:'6 · Livestock services & traceability',y1:'0.10-0.30',y3:'0.6-1.0',y5:'1.7-2.7',b5:'3.0-4.8',basis:'Tagging + movement + market fees · export certification'},
+{s:'7 · Inputs & voucher administration',y1:'0.05-0.20',y3:'0.5-0.9',y5:'1.4-2.2',b5:'2.4-3.8',basis:'0.5-1.5% voucher admin · dealer subscriptions · authentication fees'},
+{s:'8 · Platform licences & government SaaS',y1:'0.15-0.35',y3:'0.7-1.2',y5:'1.9-2.9',b5:'3.4-5.2',basis:'Federal + state dashboards · DFI/M&E licences · ECOWAS corridor licences'}];
+var MZ_TOT={y1:'1.2-2.6',y3:'5.5-10.5',y5:'11-19',b5:'22-30',eb:'Breakeven ~Y3 · opex USD 3-4.5M/yr · EBITDA USD 6-14M at Y5 (modelled)'};
+/* strategy content */
+var STRESS=[
+{s:'Downside',a:'Insecurity closes 2 of 10 zones · naira -40% · govt adoption slips 12 months · voucher scheme paused',o:'USD 5-8M revenue Y5 · breakeven slips to Y4 · zone capex frozen at stage gates · FX shield holds USD obligations at SPV level'},
+{s:'Base',a:'8-10 zones operational · NAGS-AP + L-PRES integrations land Y1-Y2 · agent network 70% coverage',o:'USD 11-19M revenue Y5 · breakeven Y3 · opex fully covered from Y3'},
+{s:'Upside',a:'ECOWAS corridor licences + full SAPZ routing + livestock export certification at scale',o:'USD 22-30M revenue Y5 · dividend capacity from Y4 · regional licensing begins'}];
+var HARD_RULES=['No zone build-out before 3 anchor offtakers signed','No physical capex before DPI acceptance','Every asset carries a maintenance contract from day one','Stage gates at M6 / M12 / M18 with pre-agreed kill or scale criteria','If government never adopts: private stack alone still reaches USD 4-7M by Y5'];
+var UVPS=[
+['Scale','227M people, 38M smallholder households: unit economics work at national volume - tiny fees on massive flows'],
+['Rails','Africa\u2019s deepest fintech + agent-banking market (NIBSS, BVN/NIN, Moniepoint, OPay): identity and payments are already solved'],
+['Livestock ministry','Africa\u2019s largest livestock economy plus a dedicated Federal Ministry of Livestock Development (2024) - a LivestockMap counterpart exists nowhere else'],
+['Funded capacity','SAPZ: USD 538M of processing infrastructure already financed - the P4 marketplace fills capacity someone else paid to build'],
+['Voucher legacy','GES reached ~14M farmers by e-wallet; NAGS-AP runs on NIN rails - P6 rides proven rails and fixes known leaks'],
+['Collateral law','STMA 2017 + National Collateral Registry: WRS and tagged livestock are legally bankable today'],
+['ECOWAS anchor','Roughly two-thirds of West African GDP and the region\u2019s demand sink: winning Nigeria sets the regional standard']];
+var ISSUES=[
+['Insecurity & farmer-herder conflict','Transhumance + conflict early-warning overlay; build zones only where risk-scored green; movable, insured assets','Corridor intelligence licensed to states & response agencies'],
+['Ghost farmers & subsidy leakage','NIN-linked registry + satellite plot verification kills duplicate identities','Every federal & state scheme runs on one verified registry'],
+['Post-harvest losses (30-45%)','Storage marketplace + store-vs-sell advisory + cold-chain routing','Per-tonne fees fund maintenance so assets never decay'],
+['Counterfeit inputs','Product authentication + registered-dealer network (P6)','Authentication fees scale with every pack sold'],
+['Naira volatility','Naira revenue on naira flows; USD structured at SPV level; no import-heavy cost base','The FX shield is contractual, not hopeful'],
+['Credit-recovery culture','Check-off at source via offtaker & fintech rails; guaranteed portfolios monitored live','Recovery becomes automatic, not a campaign'],
+['Donor decay','Every digital asset carries a revenue line and a maintenance contract','SPV profit is the maintenance contract for the public good']];
+var ECOWAS=[
+['Wave 1 · Y1-2 · Prove Nigeria at scale','10 zones live, 8 revenue streams activated, audited results published'],
+['Wave 2 · Y2-3 · Corridor intelligence','Livestock & grain corridors from Niger, Chad, Cameroon, Benin priced and tracked (with RESIMAO)'],
+['Wave 3 · Y3-4 · Country replications','Ghana, C\u00f4te d\u2019Ivoire, Senegal instances licensed on the Nigeria template'],
+['Wave 4 · Y4-5 · Regional standard','ECOWAP-aligned data standard, region-wide traceability & export certification']];
+/* ===================== ROLES & TABS ===================== */
+var ROLES=[
+{id:'foundation',ic:'\ud83c\udf0d',n:'Foundation / Donor',d:'Gates · MCF · World Bank · AfDB view',tabs:'ALL'},
+{id:'min_ag',ic:'\ud83c\udfdb\ufe0f',n:'Hon. Minister, FMAFS',d:'Food security command view',tabs:'ALL'},
+{id:'min_lv',ic:'\ud83d\udc02',n:'Hon. Minister, FMLD',d:'Livestock transformation view',tabs:'ALL'},
+{id:'ps',ic:'\ud83d\udccb',n:'Perm. Secretary / Director',d:'Federal delivery & M&E',tabs:'ALL'},
+{id:'nsia',ic:'\ud83c\udfe6',n:'NSIA / SPV Board',d:'Investment & portfolio view',tabs:'ALL'},
+{id:'adp',ic:'\ud83c\udf3e',n:'State ADP Director',d:'State programme operations',tabs:['overview','production','market','livestock','monetise','sources']},
+{id:'bank',ic:'\ud83c\udfe7',n:'Bank / NIRSAL',d:'Origination, WRS & portfolio',tabs:['overview','market','monetise','livestock','sources']},
+{id:'fintech',ic:'\ud83d\udcf1',n:'Fintech Partner',d:'Agent rails & farmer wallets',tabs:['overview','market','monetise','sources']},
+{id:'insurer',ic:'\u2614',n:'Insurer (NAIC / private)',d:'Index insurance underwriting',tabs:['overview','market','livestock','monetise','sources']},
+{id:'eq_owner',ic:'\ud83d\ude9c',n:'Equipment Owner',d:'Fleet revenue & utilisation',tabs:['overview','monetise','market']},
+{id:'eq_op',ic:'\ud83d\udd27',n:'Equipment Operator',d:'Job queue & certification',tabs:['overview','monetise','market']},
+{id:'wh_owner',ic:'\ud83c\udfed',n:'Warehouse / Silo Owner',d:'Occupancy & listing revenue',tabs:['overview','monetise','market']},
+{id:'wh_op',ic:'\ud83d\udce6',n:'Warehouse Operator',d:'Intake, outtake, quality',tabs:['overview','monetise','market']},
+{id:'proc',ic:'\u2699\ufe0f',n:'Processor / Toller',d:'Capacity marketplace',tabs:['overview','monetise','market','production']},
+{id:'brand',ic:'\ud83c\udff7\ufe0f',n:'Brand / SME',d:'Factory-as-a-service buyer',tabs:['overview','monetise','market']},
+{id:'dealer',ic:'\ud83c\udfea',n:'Agro-Dealer',d:'Storefront, stock & vouchers',tabs:['overview','monetise','market']},
+{id:'agent',ic:'\ud83d\udcde',n:'Market Agent',d:'Price submission & campaigns',tabs:['overview','market','monetise']},
+{id:'farmer',ic:'\ud83e\udd55',n:'Farmer / Herder',d:'Booking, prices, credit, vouchers',tabs:['overview','market','monetise','livestock']}];
+var TABS=[['overview','Overview'],['production','Production'],['market','Markets'],['livestock','Livestock'],['monetise','Monetise'],['strategy','Strategy'],['sources','Sources']];
+var SUBS={monetise:[['mz_ov','Pillar Overview'],['mz_eq','P1 Equipment'],['mz_mk','P2 Market Linkage'],['mz_st','P3 Storage'],['mz_pr','P4 Processing'],['mz_fi','P5 Finance'],['mz_in','P6 Inputs'],['mz_rev','SPV Revenue']],
+strategy:[['st_stress','Stress Test'],['st_uvp','Nigeria UVPs'],['st_iss','Critical Issues'],['st_eco','ECOWAS Play']]};
+var METRICS=[['pop','Population'],['hh','Farm households'],['cattle','Cattle'],['mech','Mechanisation gap'],['stor','Storage assets']];
+/* ===================== HELPERS & GENERATORS (deterministic, [ILLUSTRATIVE]) ===================== */
+function h32(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=(h*16777619)>>>0;}return h;}
+function rngFor(seed){var x=h32(seed)||123456789;return function(){x^=x<<13;x^=x>>>17;x^=x<<5;x>>>=0;return x/4294967296;};}
+function fmtN(n){return n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(n>=1e4?0:1)+'K':''+Math.round(n);}
+function naira(n){return '\u20a6'+fmtN(n);}
+function pv(k){var m={of:'OFFICIAL',es:'EST.',mo:'MODELLED',il:'ILLUSTRATIVE',lv:'LIVE-DEMO'};return '<span class="pv '+k+'">'+m[k]+'</span>';}
+function stHH(s){return Math.round(s.pop*1000*0.55*0.62/6);} /* farm households K [MODELLED] */
+function stCattle(s){return Math.round(210*s.cw/ (STATES.reduce(function(a,x){return a+x.cw;},0)) *100)*10;} /* K head scaled to ~21M */
+function stStor(s){var r=rngFor('stor'+s.id);return (SILO_STATES.indexOf(s.id)>=0?1:0)*250+Math.round(r()*60+20);} /* K MT */
+function stMech(s){var r=rngFor('mech'+s.id);return Math.round(stHH(s)/ (35+r()*25));} /* tractors needed proxy */
+var EQ_TYPES=[['Tractor 65-75hp',9,120000],['Tractor 90hp+',4,180000],['Combine harvester',1.2,450000],['Rice transplanter',1.5,90000],['Thresher / sheller',6,45000],['Boom sprayer',3,60000],['Mobile dryer',1,110000],['Refrigerated van',0.8,150000]];
+var EQ_OWNERS=['State THA fleet','NALDA hub','Green Imperative pool','Hello Tractor partner','Private owner','Cooperative'];
+function genEquip(s){var r=rngFor('eq'+s.id),rows=[],scale=Math.max(.4,stHH(s)/450);
+ EQ_TYPES.forEach(function(tp){var n=Math.max(1,Math.round(tp[1]*scale*(0.7+r()*0.6)));
+  rows.push({type:tp[0],count:n,owner:EQ_OWNERS[Math.floor(r()*EQ_OWNERS.length)],util:Math.round(34+r()*48),rate:naira(tp[2])+'/day',status:r()<.62?'Available':(r()<.5?'Booked':'Maintenance')});});
+ return rows;}
+function genStorage(s){var r=rngFor('st'+s.id),rows=[];
+ if(SILO_STATES.indexOf(s.id)>=0)rows.push({f:'Federal silo complex · '+s.cap,cap:'25,000-100,000 MT',occ:Math.round(15+r()*35),own:'FGN (concessioned)',ty:'Grain silo'});
+ rows.push({f:'Strategic reserve / state warehouse',cap:(5+Math.round(r()*15))+',000 MT',occ:Math.round(20+r()*45),own:'State Govt',ty:'Warehouse'});
+ var afx=Math.round(1+r()*6);rows.push({f:'Exchange-certified warehouses \u00d7'+afx,cap:(afx*2)+',500 MT total',occ:Math.round(35+r()*45),own:'AFEX / NCX network',ty:'WRS-eligible'});
+ rows.push({f:'Solar cold rooms \u00d7'+Math.round(1+r()*8),cap:'3-10 MT each',occ:Math.round(40+r()*50),own:'ColdHubs-type / private',ty:'Cold chain'});
+ if(s.z!=='NW'&&s.z!=='NE')rows.push({f:'Aggregation sheds \u00d7'+Math.round(3+r()*9),cap:'200-800 MT each',occ:Math.round(30+r()*50),own:'Coops / LGA',ty:'Aggregation'});
+ return rows;}
+function genProc(s){var r=rngFor('pr'+s.id),rows=[],c=s.crops.join(',');
+ if(c.indexOf('rice')>=0)rows.push({f:'Rice mill cluster',cap:(10+Math.round(r()*60))+' MT/day',util:Math.round(35+r()*40),toll:'\u20a618-30K/MT',own:'Private / SAPZ-linked'});
+ if(c.indexOf('cassava')>=0)rows.push({f:'Cassava / garri processing',cap:(5+Math.round(r()*30))+' MT/day',util:Math.round(30+r()*45),toll:'\u20a612-22K/MT',own:'SME clusters'});
+ if(c.indexOf('tomato')>=0)rows.push({f:'Tomato paste / drying line',cap:(20+Math.round(r()*80))+' MT/day',util:Math.round(15+r()*40),toll:'\u20a615-28K/MT',own:'Private'});
+ if(c.indexOf('maize')>=0||c.indexOf('soybean')>=0)rows.push({f:'Feed mill',cap:(20+Math.round(r()*120))+' MT/day',util:Math.round(45+r()*35),toll:'\u20a610-20K/MT',own:'Private / integrator'});
+ if(c.indexOf('dairy')>=0||s.cw>=7)rows.push({f:'Milk collection centre'+(s.cw>=8?' network':''),cap:(2+Math.round(r()*18))+',000 L/day',util:Math.round(25+r()*40),toll:'\u20a640-70/L margin',own:'WAMCO-type / coop'});
+ if(c.indexOf('oil palm')>=0)rows.push({f:'Oil palm mill',cap:(3+Math.round(r()*12))+' MT FFB/hr',util:Math.round(40+r()*35),toll:'20-25% milling share',own:'Estate / SME'});
+ if(SAPZ1.indexOf(s.id)>=0)rows.push({f:'SAPZ agro-industrial hub (Phase 1)',cap:'Multi-line',util:0,toll:'Under development',own:'AfDB / FGN / State'});
+ if(!rows.length)rows.push({f:'Multi-crop SME processing',cap:(3+Math.round(r()*10))+' MT/day',util:Math.round(30+r()*40),toll:'\u20a610-20K/MT',own:'SME'});
+ return rows;}
+/* agent-submitted price rows [LIVE-DEMO seeded] */
+var AGENT_ROWS=[
+{c:'Maize',m:'Dawanau (Kano) · central',l:'Central',p:635,ag:'AG-0113',ts:'today 07:40'},
+{c:'Maize',m:'Giwa (Kaduna) · zone',l:'Zone',p:602,ag:'AG-0428',ts:'today 08:05'},
+{c:'Paddy',m:'Argungu (Kebbi) · farm-gate',l:'Farm',p:690,ag:'AG-0071',ts:'today 07:55'},
+{c:'Cattle',m:'Maigatari (Jigawa) · kara',l:'Central',p:820000,ag:'AG-0233',ts:'today 09:10'},
+{c:'Tomato',m:'Mile 12 (Lagos) · terminal',l:'Central',p:465,ag:'AG-0510',ts:'today 06:30'},
+{c:'Soybean',m:'Makurdi (Benue) · zone',l:'Zone',p:938,ag:'AG-0322',ts:'yesterday 16:45'}];
+/* ===================== PANEL BUILDERS ===================== */
+var SEL=null, TAB='overview', SUB={monetise:'mz_ov',strategy:'st_stress'}, PERSONA={};
+function selState(){return SEL?STATES.filter(function(s){return s.id===SEL;})[0]:null;}
+function bar(vpct,color){return '<div class="bar"><i style="width:'+Math.min(100,vpct)+'%;'+(color?'background:'+color:'')+'"></i></div>';}
+function card(h,body,cls){return '<div class="card '+(cls||'')+'">'+(h?'<div class="ch">'+h+'</div>':'')+body+'</div>';}
+function tbl(heads,rows){return '<table><tr>'+heads.map(function(h){return '<th>'+h+'</th>';}).join('')+'</tr>'+rows.map(function(r){return '<tr>'+r.map(function(c){return '<td>'+c+'</td>';}).join('')+'</tr>';}).join('')+'</table>';}
+function personaPills(mod,list){var cur=PERSONA[mod]||list[0][0];
+ return '<div class="pill-row">'+list.map(function(p){return '<span class="ppill'+(p[0]===cur?' on':'')+'" onclick="PERSONA[\''+mod+'\']=\''+p[0]+'\';render()">'+p[1]+'</span>';}).join('')+'</div>';}
+function curPersona(mod,list){return PERSONA[mod]||list[0][0];}
+
+var P={};
+P.overview=function(){var s=selState(),h='';
+ h+=card('Why AgriMap Nigeria '+pv('mo'),'<div class="mut">Nigeria spends '+NAT.imports.replace('USD','USD ')+', loses '+NAT.phl+' of harvest value and runs mechanisation at '+NAT.mech+' - while NIN/BVN, NIRSAL, NAGS-AP and the deepest fintech rails in Africa already exist. AgriMap is the sovereign meta-layer that makes these systems interoperable and self-funding: six pillars, eight revenue streams, one SPV with a government golden share (NSIA-anchored, the NAMCO/EIH template).</div>','gn');
+ h+='<div class="grid3">';
+ h+=card('The engine','<div class="mut">P1 Equipment · P2 Market Linkage · P3 Storage · P4 Processing · P5 Finance · P6 Inputs - every pillar carries its own revenue line. See the <b>Monetise</b> tab.</div>');
+ h+=card('The registry','<div class="mut">Farmer & herder IDs linked to NIN/BVN; plots verified by satellite; animals tagged via LivestockMap. The scoring rail banks and insurers are missing.</div>');
+ h+=card('The politics','<div class="mut">Delivers Renewed Hope food security, NLTP, SAPZ utilisation and Young Africa Works jobs - one dashboard for FMAFS and FMLD.</div>');
+ h+='</div>';
+ if(s){var r=rngFor('ov'+s.id);
+  h+=card(s.n+' · '+ZONES[s.z]+' '+pv('es'),
+   '<div class="grid4">'+
+   '<div><div class="big">'+s.pop+'M</div><div class="mut">'+t('population','Population')+'</div></div>'+
+   '<div><div class="big">'+fmtN(stHH(s)*1000)+'</div><div class="mut">'+t('farm_hh','Farm households')+' (modelled)</div></div>'+
+   '<div><div class="big">'+fmtN(stCattle(s)*1000)+'</div><div class="mut">'+t('cattle','Cattle')+' (est.)</div></div>'+
+   '<div><div class="big">'+stStor(s)+'K MT</div><div class="mut">Storage assets (est.)</div></div></div>'+
+   '<div style="margin-top:8px">'+s.crops.map(function(c){return '<span class="tag">'+c+'</span>';}).join('')+'</div>'+
+   '<div class="mut" style="margin-top:6px">Cluster-zone readiness: '+(['Screening','Candidate','Priority'][Math.floor(r()*3)])+' · Security risk-score: '+(s.z==='NE'||s.z==='NW'?'Amber (corridor-dependent)':'Green')+' '+pv('il')+'</div>');
+ } else h+=card('Select a state','<div class="mut">Click any state on the map or in the list to see its profile across every tab.</div>');
+ h+=card('10 investable cluster zones '+pv('mo'),'<div class="mut">Kano-Jigawa irrigated belt · Kaduna grain & ginger · Kebbi-Sokoto rice valley · Benue food basket · Niger-Kwara grain & soy · Plateau-Nasarawa horticulture & dairy · Bauchi-Gombe sorghum & cowpea · Adamawa-Taraba livestock & dairy · Ogun-Oyo cassava & poultry · South-East & Delta rice-palm-aquaculture. Indicative pilot capex USD 52M across 10 zones.</div>');
+ return h;};
+
+P.production=function(){var s=selState(),h='';
+ var natl=[['Cassava','~60M MT','World #1 producer; garri, starch, HQCF chains',95],['Yam','~47M MT','Benue-Nasarawa belt; festival economy',78],['Maize','~12M MT','Feed demand pull; lean-season imports',52],['Rice (paddy)','~8M MT','Kebbi, Kano, Ebonyi anchors; milling gap persists',44],['Sorghum','~6.8M MT','Brewery + feed industrial offtake',38],['Groundnut','~4.5M MT','Northern rebound after decades of decline',30],['Tomato','~3.7M MT','40%+ losses; paste imports continue',26],['Sesame','~0.45M MT','Top-3 agri export by value',12],['Cocoa','~0.28M MT','SW belt; EUDR traceability now decisive',10]];
+ h+=card('National production (indicative annual) '+pv('es'),tbl(['Crop','Volume','Note',''],natl.map(function(r){return [r[0],'<b>'+r[1]+'</b>',r[2],bar(r[3])];})));
+ if(s){var r=rngFor('prod'+s.id);
+  h+=card(s.n+' crop profile '+pv('il'),tbl(['Crop','Area share','Yield vs potential','AgriMap action'],s.crops.map(function(c){var a=Math.round(8+r()*30),y=Math.round(25+r()*45);
+   return [c,a+'%'+bar(a*2.6),y+'%'+bar(y,'#f59e0b'),y<45?'Input + mechanisation package':'Market linkage priority'];})));
+  h+=card('Satellite layers on this state '+pv('mo'),'<div class="mut">Sentinel-2 cropland classification · NDVI anomaly vs 5-yr median · CHIRPS rainfall · flood mask (rice systems) · plot-boundary verification for the farmer registry. These layers drive the credit passport and index insurance triggers.</div>');
+ }
+ h+=card('The production thesis','<div class="mut">Nigeria does not have a land problem ('+NAT.arable+'). It has a yield, loss and linkage problem: '+NAT.phl+', '+NAT.mech+' mechanisation, and farm-gate prices detached from terminal markets. Pillars P1, P3 and P6 attack exactly these three.</div>');
+ return h;};
+
+P.market=function(){var s=selState(),h='';
+ h+=card('National reference prices '+pv('es')+' <span class="mut">indicative mid-2026, naira volatile</span>',
+  tbl(['Commodity','Now','Range','Trend','Note'],Object.keys(PRICES).map(function(k){var p=PRICES[k];
+   return [p.n,'<b>'+(p.p>=1000?naira(p.p):'\u20a6'+p.p)+'</b> <span class="mut">'+p.u.replace('\u20a6','')+'</span>','\u20a6'+fmtN(p.lo)+' - \u20a6'+fmtN(p.hi),p.tr==='up'?'\u2b06\ufe0f':p.tr==='vol'?'\u26a1':'\u27a1\ufe0f',p.note];})));
+ h+=card('Human agent layer - farm · zone · central '+pv('lv'),
+  '<div class="mut" style="margin-bottom:8px">Verified agents submit prices from physical markets in Hausa, Yoruba, Igbo, Pidgin and English by WhatsApp/USSD. Composite = feed median cross-checked against agent submissions; confidence scales with agreement.</div>'+
+  tbl(['Commodity','Market','Level','Price','Agent','When'],AGENT_ROWS.map(function(a){return [a.c,a.m,a.l,'<b>'+(a.p>=1000?naira(a.p):'\u20a6'+a.p)+'</b>',a.ag,a.ts];}))+
+  '<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">'+
+  '<select id="agC">'+Object.keys(PRICES).map(function(k){return '<option value="'+k+'">'+PRICES[k].n+'</option>';}).join('')+'</select>'+
+  '<select id="agL"><option>Farm</option><option>Zone</option><option>Central</option></select>'+
+  '<input id="agM" placeholder="Market name" style="width:150px">'+
+  '<input id="agP" placeholder="Price \u20a6" style="width:90px" type="number">'+
+  '<button class="act" onclick="agentSubmit()">'+t('submit_price','Submit price')+'</button></div>'+
+  '<div class="mut" id="agMsg" style="margin-top:6px"></div>');
+ h+=card('Integrated data feeds '+pv('of'),tbl(['Feed','Type','Coverage','Mode'],FEEDS.map(function(f){return ['<b>'+f.n+'</b>',f.ty,f.what,f.mode];})));
+ h+=card('Cross-border corridor watch (ECOWAS) '+pv('es'),tbl(['Corridor','Dominant flow','Note'],BORDER_FLOWS.map(function(b){return ['<b>'+b.b+'</b>',b.flow,b.note];})));
+ if(s){var r=rngFor('mkt'+s.id);
+  h+=card(s.n+' market snapshot '+pv('il'),tbl(['Commodity','Local vs national','Signal'],s.crops.slice(0,4).map(function(c){var d=Math.round((r()-0.5)*24);
+   return [c,(d>=0?'+':'')+d+'%',d>8?'Deficit market - sell here':d<-8?'Surplus - store or ship out':'Balanced'];})));
+ }
+ h+=card('Signature use case: Strategic Grain Reserve','<div class="mut">Live silo inventory (P3) + this price layer gives FMAFS daily stock-vs-price evidence to calibrate reserve releases and import windows - and gives farmers a store-vs-sell advisory on the same data.</div>','gn');
+ return h;};
+
+P.livestock=function(){var s=selState(),h='';
+ h+='<div class="grid4">'+[['\ud83d\udc02',LV.cattle,'Cattle'],['\ud83d\udc11',LV.sheep,'Sheep'],['\ud83d\udc10',LV.goats,'Goats'],['\ud83d\udc14',LV.poultry,'Poultry']].map(function(x){return card('','<div style="font-size:20px">'+x[0]+'</div><div class="big">'+x[1]+'</div><div class="mut">'+x[2]+' '+pv('es')+'</div>');}).join('')+'</div>';
+ h+=card('LivestockMap modules','<div class="grid2">'+
+  card('\ud83c\udd94 Animal ID & traceability','<div class="mut">Unique animal IDs + herder registry linked to NIN. Movement permits digitised along stock routes and '+LV.reserves+'. Untagged animals are invisible to lenders - tagging multiplies bankable collateral.</div>')+
+  card('\ud83d\udef0\ufe0f Pastoral intelligence','<div class="mut">Sahelian biomass & water-point monitoring from satellite; transhumance + conflict early-warning; feed-balance dashboard feeding NAIC index triggers.</div>')+
+  card('\ud83d\uded2 Markets & Sallah','<div class="mut">Kara market price boards via the agent network. '+LV.sallah+' - a national logistics, price and credit dashboard, with corridors from Niger, Chad and Cameroon tracked.</div>')+
+  card('\ud83e\udd5b Dairy import substitution','<div class="mut">Nigeria imports '+LV.dairyImport.replace('~','~')+'. LivestockMap maps collection routes for WAMCO/Arla-type models and cooperative mini-dairies; herder credit scored on delivery history.</div>')+
+  '</div>');
+ h+=card('Livestock reference prices '+pv('es'),tbl(['Class','Range'],LV_PRICES.map(function(p){return [p[0],'<b>'+p[1]+'</b>'];})));
+ if(s&&s.cw>0){var r=rngFor('lv'+s.id);
+  h+=card(s.n+' herd & services '+pv('il'),tbl(['Item','Value'],[
+   ['Cattle (est.)',fmtN(stCattle(s)*1000)],['Sheep & goats (est.)',fmtN(stCattle(s)*1000*3.2)],
+   ['Kara / livestock markets',''+Math.max(1,Math.round(s.cw*1.4))],['Vaccination coverage (PPR)',Math.round(20+r()*45)+'%'+bar(20+r()*45,'#f59e0b')],
+   ['Tagged animals (pilot)',Math.round(r()*4)+'%'+bar(r()*4,'#8b5cf6')],['Milk collection points',''+Math.round(s.cw*(0.6+r()))]]));
+ }
+ h+=card('Animal health','<div class="mut">Vaccination-campaign management (PPR, CBPP, anthrax, ND) · vet & para-vet registry · outbreak alerts wired to FMLD and state DVSs.</div>');
+ return h;};
+/* -------- monetise -------- */
+function mzWrap(inner){return inner;}
+P.monetise=function(){var sub=SUB.monetise,s=selState(),h='';
+ if(sub==='mz_ov'){
+  h+=card('One platform, six pillars, eight revenue streams '+pv('mo'),'<div class="mut">Every pillar is a marketplace with persona views for each side, and every pillar earns. Providers pay; farmers get free access. Revenue: USD 1.2-2.6M (Y1) \u2192 5.5-10.5M (Y3) \u2192 11-19M (Y5), best case 22-30M. Breakeven ~Y3. All modelled on the audited Uganda (NAMCO/NSSF) and Ethiopia (EIH) constructs, calibrated to Nigeria - to be validated.</div>','gn');
+  h+='<div class="grid3">'+[
+   ['P1 \ud83d\ude9c Equipment','One tractor serves 300-500 smallholders. Booking commission 8-12%, telemetry SaaS, operator certification.','mz_eq'],
+   ['P2 \ud83d\udcc8 Market Linkage','Feeds + human agents at farm/zone/central level. Data subscriptions & buyer verification.','mz_mk'],
+   ['P3 \ud83c\udfed Storage','Silos, SFR, AFEX warehouses, cold rooms - listed, rentable, collateralised. Listing + 5-10% commission + WRS fees.','mz_st'],
+   ['P4 \u2699\ufe0f Processing','Factory-as-a-service into SAPZ and private mills. 2-4% intermediation on routed volumes.','mz_pr'],
+   ['P5 \ud83c\udfe6 Finance','Credit passport, check-off collections, index insurance. 0.5-1% origination, 1-2% collections, 10-15% insurance commission.','mz_fi'],
+   ['P6 \ud83c\udfea Inputs','Verified dealers, product authentication, NIN e-vouchers. 0.5-1.5% voucher admin + dealer fees.','mz_in']
+  ].map(function(x){return card(x[0],'<div class="mut">'+x[1]+'</div><div style="margin-top:7px"><span class="ppill" onclick="SUB.monetise=\''+x[2]+'\';render()">Open module \u2192</span></div>');}).join('')+'</div>';
+  return h;}
+ if(sub==='mz_eq'){var pl=[['owner','Owner'],['op','Operator'],['renter','Farmer / Renter'],['gov','SPV / Govt']],cp=curPersona('eq',pl);
+  h+=personaPills('eq',pl);
+  if(cp==='owner')h+=card('Fleet dashboard '+pv('il'),'<div class="mut" style="margin-bottom:7px">Your machines listed, tracked and revenue-managed. Booking commission 8-12% to the platform; telemetry included.</div>'+(s?tbl(['Type','Units','Utilisation','Rate','Status'],genEquip(s).map(function(e){return [e.type,e.count,e.util+'%'+bar(e.util),e.rate,e.status];})):'<div class="mut">Select a state to see its fleet.</div>'));
+  if(cp==='op')h+=card('Operator job queue '+pv('il'),tbl(['Job','Where','Window','Pay'],[['Land prep 12 ha','Coop cluster '+(s?s.n:'Kano'),'Next 5 days','\u20a6120K + fuel'],['Rice transplanting 6 ha','Outgrower block','This week','\u20a675K'],['Harvest support (combine)','Anchor offtaker field','Booked','\u20a6210K'],['Sprayer calibration + job','ADP referral','Open','\u20a640K']])+'<div class="mut" style="margin-top:6px">Certified operators rank higher and earn a training badge (MCF-relevant youth employment track).</div>');
+  if(cp==='renter')h+=card('Book equipment '+pv('il'),'<div class="mut">Farmers and coops book by WhatsApp/USSD; pay via Moniepoint/OPay rails; price is per-hectare, escrowed, weather-flexible. No smartphone needed.</div>'+tbl(['Service','Indicative price','Availability'],[['Ploughing + harrowing','\u20a635-55K/ha','3-9 days'],['Rice transplanting','\u20a625-40K/ha','Seasonal'],['Combine harvesting','\u20a645-70K/ha','Book early'],['Boom spraying','\u20a68-15K/ha','2-4 days']]));
+  if(cp==='gov')h+=card('Utilisation heatmap (state/SPV view) '+pv('mo'),'<div class="mut">Which zones are equipment-starved vs idle; where the next ~250 hubs (~7 per state, 2,250 direct FTE Phase 1) should go; NALDA/Green Imperative fleet performance vs private.</div>'+(s?tbl(['Indicator','Value'],[['Tractor gap (est.)',fmtN(stMech(s))+' units'],['Current avg utilisation','~'+Math.round(40+rngFor('u'+s.id)()*25)+'%'],['Hub recommendation',Math.max(2,Math.round(stHH(s)/60))+' hubs']]):''));
+  h+=card('P1 revenue model '+pv('mo'),'<div class="mut">8-12% booking commission · telemetry SaaS per machine · certified-operator training fees · data licences to BOA/NIRSAL for asset-backed lending.</div>');
+  return h;}
+ if(sub==='mz_mk'){var pl2=[['farmer','Farmer'],['trader','Trader / Buyer'],['agent','Market Agent'],['gov','Govt / Reserve']],cp2=curPersona('mk',pl2);
+  h+=personaPills('mk',pl2);
+  if(cp2==='farmer')h+=card('Store or sell? '+pv('il'),'<div class="mut">Today\u2019s advisory blends the national price, your nearest zone market, storage cost and the seasonal curve.</div>'+tbl(['Crop','Local price','Advisory'],(s?s.crops.slice(0,4):['maize','paddy','tomato']).map(function(c){var k=c.indexOf('rice')>=0?'paddy':c;var p=PRICES[k]||PRICES.maize;return [c,'\u20a6'+p.p,p.tr==='up'?'\ud83d\udfe2 Hold 2-4 weeks if you can store (P3)':'\ud83d\udfe1 Sell into current demand'];})));
+  if(cp2==='trader')h+=card('Verified supply finder '+pv('il'),'<div class="mut">Buyers see aggregated, quality-graded lots with verified sellers and logistics quotes - reducing the search-and-trust cost that keeps margins fat and farm-gate prices thin.</div>');
+  if(cp2==='agent')h+=card('Agent console '+pv('lv'),'<div class="mut">Submit prices from your assigned markets (farm / zone / central). Consistency vs feeds raises your confidence score and your per-submission fee. Use the form on the Markets tab.</div>');
+  if(cp2==='gov')h+=card('Reserve & policy view '+pv('mo'),'<div class="mut">Daily stock-vs-price evidence for Strategic Food Reserve releases; import-window analytics; state food-security scorecards for the Renewed Hope dashboard.</div>');
+  h+=card('P2 revenue model '+pv('mo'),'<div class="mut">Data subscriptions (processors, banks, DFIs, traders) · buyer verification fees · agent-network sponsorship · government dashboard licences.</div>');
+  return h;}
+ if(sub==='mz_st'){var pl3=[['owner','Owner'],['op','Operator'],['dep','Depositor / Farmer'],['bank','Bank / BOA']],cp3=curPersona('st',pl3);
+  h+=personaPills('st',pl3);
+  if(cp3==='owner')h+=card('Storage occupancy & revenue '+pv('il'),(s?tbl(['Facility','Capacity','Occupancy','Owner','Type'],genStorage(s).map(function(w){return [w.f,w.cap,w.occ+'%'+bar(w.occ),w.own,w.ty];})):'<div class="mut">Select a state.</div>')+'<div class="mut" style="margin-top:6px">Idle federal silo space becomes listed, insured, revenue-earning capacity.</div>');
+  if(cp3==='op')h+=card('Operator ledger '+pv('il'),tbl(['Movement','Lot','Qty','Quality'],[['Intake','Maize · Coop 14','42 MT','GR-2, 12.8% mc'],['Intake','Paddy · Outgrower 7','18 MT','Long grain'],['Outtake','Maize · Feed mill','30 MT','Cleared vs WRS'],['Fumigation','Bay 3','-','Scheduled']]));
+  if(cp3==='dep')h+=card('Depositor view '+pv('il'),'<div class="mut">Deposit produce \u2192 get a digital warehouse receipt \u2192 borrow against it (STMA 2017 + National Collateral Registry) or hold for the price curve. Store-vs-sell advisory built in.</div>');
+  if(cp3==='bank')h+=card('Collateral monitor '+pv('mo'),'<div class="mut">Banks see verified WRS inventory, movement alerts and price-marked collateral value in real time - the missing confidence layer for warehouse-receipt lending at scale.</div>');
+  h+=card('P3 revenue model '+pv('mo'),'<div class="mut">Listing fees · 5-10% booking commission · per-tonne WRS fees · collateral-monitoring licences · cold-chain route optimisation SaaS.</div>');
+  return h;}
+ if(sub==='mz_pr'){var pl4=[['owner','Facility Owner'],['toller','Toller'],['brand','Brand / SME'],['gov','SAPZ / Govt']],cp4=curPersona('pr',pl4);
+  h+=personaPills('pr',pl4);
+  if(cp4==='owner')h+=card('Facility utilisation '+pv('il'),(s?tbl(['Facility','Capacity','Utilisation','Toll rate','Owner'],genProc(s).map(function(p){return [p.f,p.cap,p.util?p.util+'%'+bar(p.util):'-',p.toll,p.own];})):'<div class="mut">Select a state.</div>')+'<div class="mut" style="margin-top:6px">Idle shifts become sellable capacity on the marketplace.</div>');
+  if(cp4==='toller')h+=card('Toll orders '+pv('il'),tbl(['Order','Volume','Fee basis'],[['Parboil + mill paddy','120 MT','\u20a622K/MT'],['Garri line (SME brand)','30 MT','\u20a615K/MT'],['Feed blend (layer mash)','80 MT','\u20a612K/MT']]));
+  if(cp4==='brand')h+=card('Factory-as-a-service '+pv('il'),'<div class="mut">Launch a garri, tomato-paste or poultry brand with zero capex: AgriMap routes verified raw material (P2/P3), books toll capacity (P4), issues traceability certificates (NEPC/NAFDAC-aligned) and connects working-capital finance (P5). You pay intermediation (2-4%) + toll fees.</div>','gn');
+  if(cp4==='gov')h+=card('SAPZ command view '+pv('mo'),'<div class="mut">Phase 1: USD 538M across 8 states. AgriMap shows funded capacity vs actual throughput per hub - the utilisation evidence AfDB and FGN need for Phase 2.</div>');
+  h+=card('P4 revenue model '+pv('mo'),'<div class="mut">2-4% intermediation on routed volumes · capacity-listing fees · traceability certificates per lot · quality-assurance services.</div>');
+  return h;}
+ if(sub==='mz_fi'){var pl5=[['farmer','Farmer / Herder'],['fintech','Fintech / Bank'],['insurer','Insurer'],['gov','Govt / DFI / Foundation']],cp5=curPersona('fi',pl5);
+  h+=personaPills('fi',pl5);
+  if(cp5==='farmer')h+=card('Farmer credit passport '+pv('il'),'<div class="mut">Verified plots + herd + yields + sales history \u2192 pre-scored offers + bundled index insurance, all in one WhatsApp/USSD interface. Repayment deducts at source (check-off) when you sell through the platform - no chasing, no embarrassment.</div>'+tbl(['Product','Indicative terms'],[['Input loan (NAGS-AP aligned)','\u20a6150-400K · season · check-off'],['WRS advance','60-70% of stored value'],['Equipment hire-purchase','24-36 months, harvest-matched'],['Livestock (tagged collateral)','Against tagged animals + insurance']]));
+  if(cp5==='fintech')h+=card('Origination pipeline '+pv('mo'),'<div class="mut">Pre-scored, geo-verified borrower pipelines by zone; portfolio dashboards with satellite early-warning triggers; NIRSAL guarantee status per portfolio. Cuts acquisition cost and default risk simultaneously.</div>');
+  if(cp5==='insurer')h+=card('Index insurance workbench '+pv('mo'),'<div class="mut">Sentinel-2 NDVI, CHIRPS rainfall and Sahelian biomass layers give NAIC and private insurers the actuarial basis to scale beyond pilots; claims trigger automatically, premiums bundle into credit.</div>');
+  if(cp5==='gov')h+=card('The intermediation stack '+pv('mo'),'<div class="mut"><b>Six links:</b> DFI/donor capital \u2192 NSIA SPV \u2192 NIRSAL guarantee \u2192 bank/MFB \u2192 fintech rail \u2192 offtaker/agro-dealer check-off \u2192 farmer. Every naira traceable end-to-end; repayment deducts at source. <b>Fees:</b> 0.5-1% origination · 1-2% collections · 10-15% insurance commission · 0.3-0.6% guarantee monitoring. <b>FX shield:</b> naira revenue on naira flows; USD structured at SPV level.</div>','gn');
+  h+=card('Financial ecosystem mapped '+pv('of'),FIN.map(function(f){return '<div style="margin-bottom:7px"><b>'+f.cat+'</b><div class="mut">'+f.items.map(function(i){return '<span class="tag" title="'+i[1]+'">'+i[0]+'</span>';}).join(' ')+'</div></div>';}).join(''));
+  return h;}
+ if(sub==='mz_in'){var pl6=[['farmer','Farmer'],['dealer','Agro-Dealer'],['maker','Input Maker'],['gov','Govt / Donor']],cp6=curPersona('in',pl6);
+  h+=personaPills('in',pl6);
+  if(cp6==='farmer')h+=card('Genuine inputs, on time '+pv('il'),'<div class="mut">Scan-to-verify any seed/agro-chem pack · e-voucher wallet on your NIN · nearest verified dealer with live stock · agronomy advisory in your language.</div>'+tbl(['Input','Status'],[['NASC-certified maize seed (incl. TELA)','Voucher-eligible'],['NPK 20-10-10 / urea','Voucher-eligible · blending-plant sourced'],['Crop protection (registered)','Scan-to-verify'],['Poultry feed & vet inputs','Marketplace']]));
+  if(cp6==='dealer')h+=card('Dealer storefront '+pv('il'),tbl(['Metric','Value'],[['Verified status','\u2705 IFDC/CropLife-trained'],['Stock lines listed','24'],['Voucher redemptions (season)','1,140'],['Settlement','T+1 via fintech rail'],['Flagged counterfeit reports','0 (90 days)']]));
+  if(cp6==='maker')h+=card('Input maker analytics '+pv('mo'),'<div class="mut">Demand heatmaps by state and season · channel performance · counterfeit-incidence maps · voucher-scheme volumes. Sold as subscriptions to seed, fertiliser and crop-protection companies (Dangote, Indorama, Notore, OCP-type blenders, NASC seed firms).</div>');
+  if(cp6==='gov')h+=card('Leak-free subsidy console '+pv('mo'),'<div class="mut">NIN-linked vouchers with satellite plot verification kill ghost farmers; redemption analytics per dealer; scheme cost per verified farmer finally measurable. GES lessons applied, structurally.</div>');
+  h+=card('P6 revenue model '+pv('mo'),'<div class="mut">Voucher administration fee 0.5-1.5% of scheme value · dealer subscriptions · product-authentication fees per pack · input-maker analytics licences.</div>');
+  return h;}
+ if(sub==='mz_rev'){
+  h+=card('SPV structure - the NAMCO/EIH template, Nigeria edition '+pv('mo'),'<div class="mut">AgriMap Nigeria SPV: SkyQuest Technology Group ~45% · NSIA (sovereign) ~30% · BOA/NIRSAL/private ~20% · Government golden share ~5%. Build capital: ~USD 6-8M DPI (grant-fundable) + ~USD 45-60M pilot physical assets via NSIA, BOA/NIRSAL-guaranteed facilities, InfraCredit and DFIs (AfDB, IFC, BII, FMO). Data sovereignty: hosted in Nigeria, NDPC-compliant, golden-share veto on data policy.</div>','gn');
+  h+=card('Eight revenue streams (USD M) '+pv('mo'),tbl(['Stream','Y1','Y3','Y5','Best-case Y5','Basis'],MZ_REV.map(function(m){return ['<b>'+m.s+'</b>',m.y1,m.y3,m.y5,m.b5,'<span class="mut">'+m.basis+'</span>'];}))+
+   '<div style="margin-top:8px"><b>Total: Y1 '+MZ_TOT.y1+' · Y3 '+MZ_TOT.y3+' · Y5 '+MZ_TOT.y5+' · best case '+MZ_TOT.b5+'</b><div class="mut">'+MZ_TOT.eb+' · All figures indicative, Uganda/Ethiopia-calibrated, pending Nigeria validation.</div></div>');
+  h+=card('Jobs '+pv('mo'),'<div class="mut">90,000-140,000 direct + indirect FTE across the six pillars (ILO methodology), 500,000-800,000 induced; youth 60,000-95,000; women 65,000-105,000. P4 processing creates the most direct jobs (~7,500 direct FTE per phase).</div>');
+  return h;}
+ return h;};
+/* -------- strategy & sources -------- */
+P.strategy=function(){var sub=SUB.strategy,h='';
+ if(sub==='st_stress'){
+  h+=card('Stress test: the model survives its worst year '+pv('mo'),'<div class="mut">Every revenue line tested against Nigeria\u2019s real failure modes: insecurity, naira volatility, subsidy politics, slow government adoption.</div>');
+  h+='<div class="grid3">'+STRESS.map(function(x){return card((x.s==='Downside'?'\ud83d\udd3b ':x.s==='Base'?'\u2696\ufe0f ':'\ud83d\udd3a ')+x.s,'<div class="mut"><b>Assumptions:</b> '+x.a+'</div><div class="mut" style="margin-top:6px"><b>Outcome:</b> '+x.o+'</div>',x.s==='Base'?'gn':x.s==='Downside'?'am':'');}).join('')+'</div>';
+  h+=card('Hard rules & stage gates','<div class="mut">'+HARD_RULES.map(function(r){return '\u2022 '+r;}).join('<br>')+'</div>');
+  h+=card('Key sensitivities '+pv('mo'),'<div class="mut">\u00b110% equipment utilisation = \u00b1USD 1.2M · \u00b11 point of intermediation fee = \u00b1USD 1.5M · 6-month government delay = -USD 2M in Y1. Utilisation and adoption timing dominate; commodity prices matter less than volume through the rails.</div>');
+  h+=card('What we do not assume','<div class="mut">No subsidised-credit windfalls · no import bans · no exclusive mandates · no greenfield megaprojects. Only existing assets, existing rails and priced services. The test that matters: even in the downside, platform revenue covers core opex by Year 4.</div>','gn');
+  return h;}
+ if(sub==='st_uvp'){
+  h+=card('Seven Nigeria-specific UVPs','<div class="mut">Why AgriMap wins in Nigeria specifically - advantages no other African market replicates at this scale.</div>');
+  h+=card('',tbl(['#','UVP','Why Nigeria wins'],UVPS.map(function(u,i){return [''+(i+1),'<b>'+u[0]+'</b>',u[1]];})));
+  h+=card('The bottom line','<div class="mut">Nigeria is the one African market where scale, rails, law and politics all point the same way: the hardest market to enter, and the most defensible once entered.</div>','gn');
+  return h;}
+ if(sub==='st_iss'){
+  h+=card('Most critical issues: flagged, solved, scaled','<div class="mut">The seven issues that kill agri programmes in Nigeria - and how AgriMap is designed around them, not despite them.</div>');
+  h+=card('',tbl(['Critical issue','How AgriMap flags & solves it','How the fix scales'],ISSUES.map(function(x){return ['<b>'+x[0]+'</b>',x[1],x[2]];})));
+  return h;}
+ if(sub==='st_eco'){
+  h+=card('From Nigeria to ECOWAS: the reference implementation','<div class="mut">Nigeria anchors West Africa\u2019s economy. An AgriMap Nigeria that works becomes the template every ECOWAS member can adopt - and a licence revenue line back to the Nigeria SPV.</div>','gn');
+  h+='<div class="grid2">'+ECOWAS.map(function(w){return card(w[0],'<div class="mut">'+w[1]+'</div>');}).join('')+'</div>';
+  h+=card('Why Nigeria anchors the region',tbl(['Factor','Why it matters'],[['Demand sink','Nigeria consumes the region\u2019s surplus - livestock in, grain across borders; whoever prices Nigeria prices the region'],['Market gravity','Roughly two-thirds of West African GDP + the deepest capital markets and fintech rails'],['Proven playbook','Third country instance after Uganda and Ethiopia - each replication faster and cheaper'],['Licence revenue','Every replication pays platform licence + corridor data fees to the Nigeria SPV']]));
+  return h;}
+ return h;};
+P.sources=function(){var h='';
+ h+=card('Provenance legend','<div class="mut">'+pv('of')+' published government/partner sources (existence & headline figures) · '+pv('es')+' estimates from public reporting, to be validated · '+pv('mo')+' SkyQuest SPV model calibrated on the audited Uganda/Ethiopia programmes, pending Nigeria validation · '+pv('il')+' generated demo assets for interaction design · '+pv('lv')+' live demo interactions in this session.</div>');
+ h+=card('Primary sources',tbl(['Source','Used for'],[
+  ['NBS / NPC projections','Population, food price watch'],['FMAFS / FMLD','Programme structures, livestock estimates'],
+  ['AfDB (SAPZ, NAGS-AP)','USD 538M Phase 1, voucher rails'],['World Bank (L-PRES, ACReSAL)','Livestock & climate programmes'],
+  ['CBN / NIRSAL / BOA / NAIC','Financial rails & guarantees'],['NSIA','Sovereign investment precedents (PFI, agri infrastructure)'],
+  ['AFEX / NCX / Novus Agro / RESIMAO / FEWS NET / WFP-FAO','Market price feeds'],['SkyQuest AgriMap Uganda & Ethiopia models','Revenue, FTE and SPV calibration (audited constructs)']]));
+ h+=card('Disclaimer','<div class="mut">Demo application. All naira figures indicative and volatile; all revenue/FTE figures modelled pending validation; no figure here is a commitment or an offer. \u00a9 2026 SkyQuest Technology Group.</div>');
+ return h;};
+/* ===================== CONTROLLER ===================== */
+var ROLE=null, MAP=null, MK=[], METRIC='pop';
+function allowedTabs(){var r=ROLES.filter(function(x){return x.id===ROLE;})[0];if(!r||r.tabs==='ALL')return TABS.map(function(t){return t[0];});return r.tabs;}
+function metricVal(s){switch(METRIC){case 'pop':return s.pop;case 'hh':return stHH(s)/100;case 'cattle':return stCattle(s)/100;case 'mech':return stMech(s)/10;case 'stor':return stStor(s)/40;}return s.pop;}
+function metricLabel(s){switch(METRIC){case 'pop':return s.pop+'M';case 'hh':return fmtN(stHH(s)*1000);case 'cattle':return fmtN(stCattle(s)*1000);case 'mech':return fmtN(stMech(s));case 'stor':return stStor(s)+'K MT';}return '';}
+function mColor(v,max){var t2=v/max;return t2>0.66?'#10b981':t2>0.33?'#f59e0b':'#3b82f6';}
+function drawMap(){
+ if(typeof L==='undefined'){document.getElementById('map').style.display='none';var f=document.getElementById('mapfall');f.style.display='block';f.innerHTML='<b>Map offline.</b><br>Interactive Leaflet map unavailable in this environment - use the state list below. All functionality works without the map.';return;}
+ if(!MAP){MAP=L.map('map',{zoomControl:true,attributionControl:false}).setView([9.1,8.7],5.4);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxZoom:12}).addTo(MAP);}
+ MK.forEach(function(m){MAP.removeLayer(m);});MK=[];
+ var max=Math.max.apply(null,STATES.map(metricVal));
+ STATES.forEach(function(s){var v=metricVal(s);
+  var m=L.circleMarker([s.lat,s.lng],{radius:4+12*(v/max),color:mColor(v,max),weight:1.5,fillColor:mColor(v,max),fillOpacity:.45})
+   .addTo(MAP).bindTooltip('<b>'+s.n+'</b><br>'+METRICS.filter(function(x){return x[0]===METRIC;})[0][1]+': '+metricLabel(s))
+   .on('click',function(){selDist(s.id);});
+  MK.push(m);});
+}
+function setMetric(m){METRIC=m;drawMap();renderList();}
+function renderList(){var max=Math.max.apply(null,STATES.map(metricVal));
+ document.getElementById('slist').innerHTML=STATES.slice().sort(function(a,b){return metricVal(b)-metricVal(a);}).map(function(s){
+  return '<div class="srow'+(SEL===s.id?' on':'')+'" onclick="selDist(\''+s.id+'\')"><span><b>'+s.n+'</b> <span class="sz">'+s.z+'</span></span><span class="sv">'+metricLabel(s)+'</span></div>';}).join('');
+ document.getElementById('lgdtxt').innerHTML='<span class="dot" style="background:#10b981"></span>high <span class="dot" style="background:#f59e0b"></span>mid <span class="dot" style="background:#3b82f6"></span>low';
+ var ms=document.getElementById('metricsel');if(!ms.options.length)ms.innerHTML=METRICS.map(function(m){return '<option value="'+m[0]+'">'+m[1]+'</option>';}).join('');
+}
+function selDist(id){SEL=(SEL===id)?null:id;renderList();render();}
+function renderDash(){document.getElementById('dash').innerHTML=[
+ [NAT.pop,t('population','Population'),'of'],[NAT.hh,t('farm_hh','Smallholder households'),'es'],
+ [NAT.cattle+' / '+NAT.sheep,t('cattle','Cattle')+' / Sheep','es'],[NAT.poultry,'Poultry','es'],
+ ['USD ~10B','Food imports/yr','es'],['30-45%','Post-harvest losses','es'],
+ ['~0.27 hp/ha','Mechanisation','es'],['USD 11-19M','SPV revenue Y5','mo']
+].map(function(k){return '<div class="kpi"><div class="kv">'+k[0]+'</div><div class="kl">'+k[1]+'</div><div class="kt">'+pv(k[2])+'</div></div>';}).join('');}
+function renderTabs(){var al=allowedTabs();
+ document.getElementById('tabs').innerHTML=TABS.filter(function(x){return al.indexOf(x[0])>=0;}).map(function(x){
+  return '<div class="tab'+(TAB===x[0]?' on':'')+'" onclick="setTab(\''+x[0]+'\')">'+t(x[0],x[1])+'</div>';}).join('');
+ var sb=document.getElementById('subbar'),ss=SUBS[TAB];
+ sb.innerHTML=ss?ss.map(function(x){return '<span class="sub'+(SUB[TAB]===x[0]?' on':'')+'" onclick="SUB[\''+TAB+'\']=\''+x[0]+'\';render()">'+x[1]+'</span>';}).join(''):'';
+ sb.style.display=ss?'flex':'none';}
+function setTab(tb){TAB=tb;render();}
+function render(){renderTabs();document.getElementById('panel').innerHTML=(P[TAB]||P.overview)();renderList();}
+function renderLang(where){var el=document.getElementById(where);
+ el.innerHTML=LANGS.map(function(l){return '<button class="langbtn'+(LANG===l[0]?' on':'')+'" onclick="setLang(\''+l[0]+'\')">'+l[1]+'</button>';}).join('');}
+function setLang(l){LANG=l;renderLang('lglang');if(ROLE){renderLang('toplang');renderDash();render();
+ document.getElementById('aititle').textContent=t('ai_title','\u2728 AgriMap AI Assistant');
+ document.getElementById('aiq').placeholder=t('ai_hint','Ask about prices, credit, equipment, vouchers...');
+ document.getElementById('aisend').textContent=t('send','Send');document.getElementById('lgout').textContent=t('logout','Logout');}
+ else{document.querySelector('#login .lg-sub').textContent=t('login_hint','Choose your role to enter the demo')+' · 36 States + FCT · SkyQuest Technology Group';}}
+function renderRoles(){document.getElementById('rgrid').innerHTML=ROLES.map(function(r){
+ return '<div class="rcard" onclick="doLogin(\''+r.id+'\')"><div class="ri">'+r.ic+'</div><div class="rn">'+(r.id==='farmer'?t('farmer',r.n):r.n)+'</div><div class="rd">'+r.d+'</div></div>';}).join('');}
+function doLogin(id){ROLE=id;var r=ROLES.filter(function(x){return x.id===id;})[0];
+ document.getElementById('login').classList.add('hid');document.getElementById('app').classList.remove('hid');
+ document.getElementById('rolechip').textContent=r.ic+' '+r.n;
+ var al=allowedTabs();if(al.indexOf(TAB)<0)TAB=al[0];
+ renderLang('toplang');renderDash();render();setTimeout(drawMap,60);}
+function doLogout(){ROLE=null;SEL=null;TAB='overview';document.getElementById('app').classList.add('hid');document.getElementById('login').classList.remove('hid');}
+function agentSubmit(){var c=document.getElementById('agC').value,l=document.getElementById('agL').value,m=document.getElementById('agM').value||'(unnamed market)',p=parseFloat(document.getElementById('agP').value);
+ if(!p||p<=0){document.getElementById('agMsg').textContent='Enter a valid price.';return;}
+ var ref=PRICES[c],dev=Math.abs(p-ref.p)/ref.p,conf=dev<0.08?'HIGH':dev<0.2?'MEDIUM':'LOW (outlier - flagged for review)';
+ AGENT_ROWS.unshift({c:ref.n,m:m+' · '+l.toLowerCase(),l:l,p:p,ag:'AG-YOU',ts:'just now'});
+ render();document.getElementById('agMsg').innerHTML='\u2705 Submitted. Deviation vs composite: '+(dev*100).toFixed(1)+'% \u2192 confidence: <b>'+conf+'</b>. '+pv('lv');}
+/* ===================== AI ASSISTANT - Claude API + rule-based offline fallback ===================== */
+function aiToggle(){document.getElementById('ai').classList.toggle('open');
+ if(!document.getElementById('ailog').children.length)aiPush('a',t('ai_hello','Hello! I am the AgriMap Nigeria assistant. Ask me about prices, equipment booking, storage, credit, insurance, vouchers, livestock or the SPV model - in English, Hausa, Yoruba or Igbo.'));}
+function aiPush(who,txt){var d=document.createElement('div');d.className='msg '+who;d.innerHTML=txt.replace(/\n/g,'<br>');
+ document.getElementById('ailog').appendChild(d);document.getElementById('ailog').scrollTop=99999;}
+function buildCtx(){var s=selState();
+ return 'You are the AgriMap · LivestockMap Nigeria assistant (SkyQuest Technology Group demo). Answer briefly (under 140 words), practically, in the user\u2019s language ('+LANG+' = '+(LANGS.filter(function(l){return l[0]===LANG;})[0][1])+'). Platform: 6 pillars (equipment sharing 8-12% commission; market linkage with feeds AFEX/NCX/NBS/Novus/RESIMAO + human agents at farm/zone/central level; storage incl. federal silos & WRS under STMA 2017; processing/factory-as-a-service 2-4% intermediation incl. SAPZ; finance: credit passport, 0.5-1% origination, 1-2% check-off collections, 10-15% insurance commission with NAIC/NIRSAL/BOA/fintechs; inputs: verified agro-dealers, product authentication, NIN-linked NAGS-AP e-vouchers 0.5-1.5% admin). SPV: NSIA-anchored, government golden share, revenue USD 1.2-2.6M Y1 to 11-19M Y5 (modelled, pending validation). LivestockMap: 21M cattle, 47M sheep, 80M+ goats, tagging = bankable collateral, Sallah campaign intelligence, dairy import substitution (~USD 1.5B imports). Current user role: '+(ROLE||'guest')+'. '+(s?('Selected state: '+s.n+' ('+ZONES[s.z]+'), crops: '+s.crops.join(', ')+'.'):'No state selected.')+' Sample prices \u20a6/kg: maize 620, paddy 720, soybean 950, sesame 2400; cattle \u20a6450K-1.4M/head; milk \u20a6550/L. If asked something outside the demo, say so honestly.';}
+function ruleAnswer(q){q=q.toLowerCase();var s=selState(),nm=s?s.n:'your state';
+ var pre={en:'',ha:'[Hausa pilot - amsa a Turanci] ',yo:'[Yor\u00f9b\u00e1 pilot - \u00e8s\u00ec n\u00ed G\u1eb9\u0301\u1eb9\u0301s\u00ec] ',ig:'[Igbo pilot - az\u1ecba n\u2019as\u1ee5s\u1ee5 Bekee] '}[LANG]||'';
+ function has(){for(var i=0;i<arguments.length;i++)if(q.indexOf(arguments[i])>=0)return true;return false;}
+ if(has('price','farashi','iye owo','onuahia','maize','rice','tomato','sell'))return pre+'Reference prices (indicative): maize \u20a6620/kg, paddy \u20a6720/kg, milled rice \u20a61,550/kg, soybean \u20a6950/kg, tomato \u20a6420/kg (volatile), sesame \u20a62,400/kg. Cattle \u20a6450K-1.4M/head, ram \u20a6150-650K. Check the Markets tab for the agent-verified layer and a store-vs-sell advisory for '+nm+'.';
+ if(has('tractor','equipment','kayan aiki','mechan','plough','harvest'))return pre+'Equipment (P1): book ploughing at ~\u20a635-55K/ha, combine harvesting ~\u20a645-70K/ha via WhatsApp/USSD; pay on Moniepoint/OPay rails. Owners list machines and earn; the platform takes 8-12% commission. One tractor serves 300-500 smallholders.';
+ if(has('store','storage','silo','warehouse','ajiya','wrs'))return pre+'Storage (P3): list or rent silo, warehouse and cold-room space. Deposit produce, get a digital warehouse receipt, borrow 60-70% of stored value against it (STMA 2017 + National Collateral Registry). Fees: listing + 5-10% commission + per-tonne WRS fees.';
+ if(has('credit','loan','bashi','awin','borrow','finance'))return pre+'Credit (P5): your credit passport = verified plots + herd + sales history \u2192 pre-scored offers from BOA, banks and fintechs, guaranteed by NIRSAL where eligible. Repayment deducts at source when you sell through the platform (check-off). Input loans \u20a6150-400K/season indicative.';
+ if(has('insur','naic'))return pre+'Insurance: satellite index cover (rainfall/NDVI triggers) bundled into credit, underwritten by NAIC and private insurers. Claims pay automatically when the index triggers - no adjusters in the field.';
+ if(has('voucher','input','seed','fertil','dealer','agro'))return pre+'Inputs (P6): find a verified agro-dealer, scan any pack to confirm it is genuine, and redeem NIN-linked e-vouchers (NAGS-AP rails). Dealers settle T+1. Voucher admin fee 0.5-1.5% of scheme value funds the system.';
+ if(has('cattle','cow','livestock','herd','dabbobi','eran','ehi','sallah','ram','milk','dairy'))return pre+'LivestockMap: tag your animals to make them bankable collateral; movement permits digitised along stock routes and 415 grazing reserves. Sallah campaign: live ram prices from kara markets. Dairy: collection routes + delivery-history credit scoring (Nigeria imports ~USD 1.5B dairy/yr).';
+ if(has('revenue','spv','invest','money','profit','nsia'))return pre+'SPV model (modelled, pending validation): 8 revenue streams, USD 1.2-2.6M in Y1 \u2192 11-19M by Y5 (best case 22-30M), breakeven ~Y3. NSIA-anchored with a government golden share - the NAMCO/EIH template applied to Nigeria.';
+ if(has('ecowas','region','ghana','senegal','export'))return pre+'ECOWAS play: prove Nigeria (Y1-2), price the livestock/grain corridors from Niger, Chad, Cameroon and Benin (Y2-3), license Ghana/C\u00f4te d\u2019Ivoire/Senegal replications (Y3-4), set the ECOWAP-aligned regional standard (Y4-5). Licences flow back to the Nigeria SPV.';
+ if(has('job','fte','employment','youth'))return pre+'Jobs: 90,000-140,000 direct + indirect FTE modelled across six pillars (ILO methodology), 500K-800K induced; youth 60-95K, women 65-105K. Processing (P4) creates the most direct jobs.';
+ return pre+'I can help with: prices & markets, equipment booking, storage & WRS, credit & insurance, input vouchers, livestock & dairy, the SPV revenue model, or the ECOWAS strategy. Try one of those - or select a state on the map for local context.';}
+var AI_BUSY=false;
+function aiSend(){var q=document.getElementById('aiq').value.trim();if(!q||AI_BUSY)return;
+ document.getElementById('aiq').value='';aiPush('u',q);AI_BUSY=true;
+ var hold=document.createElement('div');hold.className='msg a';hold.textContent='\u2026';document.getElementById('ailog').appendChild(hold);
+ function done(txt,offline){hold.remove();AI_BUSY=false;aiPush('a',txt+(offline?'<br><span class="mut" style="font-size:10px">\u26a1 offline advisory mode (rule-based)</span>':''));}
+ try{
+  fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:buildCtx(),messages:[{role:'user',content:q}]})})
+  .then(function(r){if(!r.ok)throw 0;return r.json();})
+  .then(function(d){var txt=(d.content||[]).map(function(b){return b.text||'';}).join('').trim();
+   if(!txt)throw 0;done(txt,false);})
+  .catch(function(){done(ruleAnswer(q),true);});
+ }catch(e){done(ruleAnswer(q),true);}
+}
+/* ===================== BOOT ===================== */
+renderLang('lglang');renderRoles();
+</script>
+</body>
+</html>
