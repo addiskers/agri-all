@@ -341,6 +341,21 @@
       youth_farmer: 'Youth Farmer', agro_dealer: 'Agro-Dealer', foundation_staff: 'AgriMap Foundation',
       ngo: 'NGO / Dev Partner', agribiz: 'Agribusiness / Bank'
     },
+    // Mirrors the ROLES map in ethiopia-LV.html (keys are that page's role ids).
+    'Ethiopia LV': {
+      sm: 'State Minister — Livestock & Fisheries', rb: 'Regional Livestock Bureau', vet: 'Veterinary Officer / AHI',
+      exp: 'Export Abattoir / Exporter', dp: 'Dairy Processor', coop: 'Pastoralist / Cooperative',
+      dev: 'Development Partner', inv: 'Investor'
+    },
+    // Mirrors the ROLES list in agrimap-ethiopia-offline_1.html (keys are that page's role ids).
+    'Ethiopia v2': {
+      farmer: 'Farmer and pastoralist', coop: 'Cooperative and aggregator', owner: 'Equipment owner and operator',
+      ware: 'Warehouse or logistics owner', proc: 'Processor and toller', sme: 'SME or brand owner',
+      buyer: 'Buyer and offtaker', agri: 'Agribusiness partner', bank: 'Bank and microfinance institution',
+      insurer: 'Insurance company', fintech: 'Fintech and payment provider', ext: 'Extension officer and veterinarian',
+      gov: 'Federal, regional, zonal and woreda government', donor: 'Donor, foundation, DFI and investor',
+      admin: 'AgriMap operator and administrator'
+    },
     // Mirrors the ROLES list in uganda-agrimap_3.html (matched by label there).
     'Uganda v2': {
       ps: 'Permanent Secretary (MAAIF)', minister: 'State Minister, Agriculture', spv: 'SPV Board (NAMCO · NSSF · UDC)',
@@ -398,6 +413,8 @@
     'Rajasthan': 'RJ.html',
     'Bihar': 'BH.html',
     'Ethiopia': 'ET.html',
+    'Ethiopia v2': 'agrimap-ethiopia-offline_1.html',
+    'Ethiopia LV': 'ethiopia-LV.html',
     'Tanzania': 'TA.html',
     'Uganda': 'UG.html',
     'Uganda v2': 'uganda-agrimap_3.html',
@@ -408,7 +425,7 @@
   };
 
   // Top-level Region dropdown. Picking "India" reveals a second dropdown of states.
-  var TOP_REGIONS = ['India', 'Ethiopia', 'Kenya', 'Nigeria', 'Rwanda', 'Senegal', 'Tanzania', 'Uganda', 'Uganda v2'];
+  var TOP_REGIONS = ['India', 'Ethiopia', 'Ethiopia v2', 'Ethiopia LV', 'Kenya', 'Nigeria', 'Rwanda', 'Senegal', 'Tanzania', 'Uganda', 'Uganda v2'];
   var INDIA_STATES = ['Andhra Pradesh', 'Rajasthan', 'Bihar'];
 
   // Demo credentials. NOTE: this is client-side only — anyone can read it in
