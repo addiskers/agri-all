@@ -384,6 +384,14 @@
       brbn: 'ASA / Kenya Seed Company', divcom: 'County Commissioner', dao: 'County Agri Officer',
       block: 'District Agri Officer', kvk: 'KALRO Scientist', jeevika: 'TASAF / Livelihoods Coordinator', farmer: 'Farmer / SACCO'
     },
+    // Mirrors the ROLES map in AgriMap_Nigeria_FirstBank_v7.1.html (keys are that page's role ids).
+    'Nigeria FirstBank': {
+      bank_region: 'FirstBank · Regional Head', bank_district: 'FirstBank · Cluster Head',
+      bank_branch: 'FirstBank · Agric Relationship Officer', bank_credit: 'FirstBank · Credit & Agribusiness',
+      bank_risk: 'FirstBank · Risk & Portfolio', bank_recovery: 'FirstBank · Collections & Recovery',
+      bank_ins: 'FirstBank · Insurance & Guarantees', bank_agent: 'FirstBank · FirstMonie Agent',
+      dfi: 'BOA / NIRSAL / DFI partner'
+    },
     'Nigeria': {
       foundation: 'Foundation / Donor', min_ag: 'Hon. Minister, FMAFS', min_lv: 'Hon. Minister, FMLD',
       ps: 'Perm. Secretary / Director', nsia: 'NSIA / SPV Board', adp: 'State ADP Director',
@@ -421,11 +429,12 @@
     'Rwanda': 'RW.html',
     'Kenya': 'AgriMap Kenya — Agricultural Intelligence Platform.html',
     'Nigeria': 'AgriMap_LivestockMap_Nigeria.html',
+    'Nigeria FirstBank': 'AgriMap_Nigeria_FirstBank_v7.1.html',
     'Senegal': 'AgriMap_LivestockMap_Senegal_1.html',
   };
 
   // Top-level Region dropdown. Picking "India" reveals a second dropdown of states.
-  var TOP_REGIONS = ['India', 'Ethiopia', 'Ethiopia v2', 'Ethiopia LV', 'Kenya', 'Nigeria', 'Rwanda', 'Senegal', 'Tanzania', 'Uganda', 'Uganda v2'];
+  var TOP_REGIONS = ['India', 'Ethiopia', 'Ethiopia v2', 'Ethiopia LV', 'Kenya', 'Nigeria', 'Nigeria FirstBank', 'Rwanda', 'Senegal', 'Tanzania', 'Uganda', 'Uganda v2'];
   var INDIA_STATES = ['Andhra Pradesh', 'Rajasthan', 'Bihar'];
 
   // Demo credentials. NOTE: this is client-side only — anyone can read it in
